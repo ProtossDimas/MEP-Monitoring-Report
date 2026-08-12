@@ -358,6 +358,70 @@
     .ma-info{text-align:left;}
   }
 
+  .nav-crumb{
+    display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:2px 12px 12px;
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.03em;color:var(--steel-400);
+  }
+  .nav-crumb span.sep{color:#3a4762;}
+  .nav-crumb span.here{color:var(--amber);}
+  .nav-back{
+    display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+    padding:9px 12px;border-radius:8px;border:none;background:transparent;
+    color:var(--steel-400);font-size:12.5px;font-weight:600;cursor:pointer;
+    margin-bottom:8px;font-family:'Inter',sans-serif;transition:background .15s;
+  }
+  .nav-back:hover{background:var(--navy-800);color:#fff;}
+
+  .home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;}
+  .home-card{
+    background:#fff;border:1px solid #e2e5ea;border-radius:var(--radius);padding:26px 22px;
+    cursor:pointer;transition:.15s;position:relative;overflow:hidden;
+  }
+  .home-card:hover{border-color:var(--navy-700);box-shadow:0 4px 14px rgba(16,26,46,.08);transform:translateY(-1px);}
+  .home-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--navy-700);}
+  .home-card-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8992a3;}
+  .home-card-title{font-size:17px;font-weight:800;color:var(--navy-950);margin-top:6px;}
+  .home-card-desc{font-size:12.5px;color:#6b7484;margin-top:8px;line-height:1.5;}
+
+  .project-card{
+    background:#fff;border:1px dashed transparent;border:1px solid #e2e5ea;border-radius:var(--radius);
+    padding:20px 22px;cursor:pointer;transition:.15s;position:relative;overflow:hidden;
+  }
+  .project-card:hover{border-color:var(--navy-700);box-shadow:0 4px 14px rgba(16,26,46,.08);}
+  .project-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--amber);}
+  .project-card.is-summary::before{background:var(--navy-700);}
+  .project-card-title{font-size:15px;font-weight:800;color:var(--navy-950);}
+  .project-card-desc{font-size:12.5px;color:#6b7484;margin-top:5px;}
+  .project-card-add{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    border:1px dashed #c7cdd9;color:#8992a3;font-weight:700;font-size:13px;background:transparent;
+  }
+  .project-card-add:hover{border-color:var(--navy-700);color:var(--navy-700);box-shadow:none;}
+
+  /* Summary All Project — daftar proyek + persentase, expand jadi bar chart */
+  .allproj-list{display:flex;flex-direction:column;gap:12px;}
+  .allproj-item{background:#fff;border:1px solid #e2e5ea;border-radius:var(--radius);overflow:hidden;transition:border-color .15s;}
+  .allproj-item.open{border-color:var(--navy-700);}
+  .allproj-head{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    padding:16px 20px;cursor:pointer;background:#fff;transition:background .15s;
+  }
+  .allproj-head:hover{background:#f7f8fa;}
+  .allproj-head-left{display:flex;align-items:center;gap:10px;min-width:0;}
+  .allproj-chevron{flex-shrink:0;color:#8992a3;font-size:11px;transition:transform .15s;}
+  .allproj-item.open .allproj-chevron{transform:rotate(90deg);color:var(--navy-700);}
+  .allproj-name{font-size:14.5px;font-weight:800;color:var(--navy-950);}
+  .allproj-badges{display:flex;gap:8px;flex-wrap:wrap;}
+  .allproj-badge{
+    display:flex;flex-direction:column;align-items:center;gap:1px;
+    background:#f7f8fa;border:1px solid #eef0f4;border-radius:8px;padding:5px 12px;min-width:66px;
+  }
+  .allproj-badge .pct-num{font-size:13px;font-weight:800;color:var(--navy-950);font-family:'IBM Plex Mono',monospace;}
+  .allproj-badge .pct-lbl{font-size:9px;color:#8992a3;text-transform:uppercase;letter-spacing:.02em;}
+  .allproj-body{max-height:0;overflow:hidden;transition:max-height .2s ease;border-top:1px solid #eef0f4;}
+  .allproj-item.open .allproj-body{max-height:420px;}
+  .allproj-body-inner{padding:18px 20px 22px;}
+
   @media (max-width:820px){
     .sidebar{width:100%;position:fixed;bottom:0;top:auto;z-index:10;height:auto;}
     .sidebar-inner{height:auto;}
@@ -382,19 +446,7 @@
         <div class="brand-title">Monitoring Proyek</div>
         <div class="brand-sub">Sinkron langsung dari Google Sheets</div>
       </div>
-      <nav id="nav">
-        <div class="nav-group-label">Ringkasan</div>
-        <button class="nav-item active" data-menu="summary"><span class="idx">00</span>Summary</button>
-        <div class="nav-group-label">Monitoring</div>
-        <button class="nav-item" data-menu="lle"><span class="idx">01</span>Monitoring LLE</button>
-        <button class="nav-item" data-menu="tender-drawing"><span class="idx">02</span>Monitoring Tender Drawing</button>
-        <button class="nav-item" data-menu="forcon-drawing"><span class="idx">03</span>Monitoring Forcon Drawing</button>
-        <button class="nav-item" data-menu="shop-drawing"><span class="idx">04</span>Monitoring Shop Drawing</button>
-        <button class="nav-item" data-menu="material-approval"><span class="idx">05</span>Monitoring Material Approval Submittal</button>
-        <button class="nav-item" data-menu="method-of-work"><span class="idx">06</span>Monitoring Method of Work</button>
-        <button class="nav-item" data-menu="rfi"><span class="idx">07</span>Monitoring RFI</button>
-        <button class="nav-item" data-menu="site-instruction"><span class="idx">08</span>Monitoring Site Instruction</button>
-      </nav>
+      <nav id="nav"></nav>
       <div class="sidebar-foot" id="lastSync">Belum sinkron</div>
     </div>
   </aside>
@@ -639,6 +691,50 @@ const STATUS_WORDS = {
   bad:  ["reject","rejected","overdue","delay","terlambat","late","hold"],
 };
 
+/* ============================================================
+   STRUKTUR MENU UTAMA
+   Home -> [Operation | Engineering] -> daftar proyek -> menu
+   monitoring per proyek (Summary, Monitoring LLE, dst).
+
+   Semua proyek Engineering (bawaan maupun yang ditambah lewat
+   tombol "+ Tambah Project") WAJIB punya menu yang sama persis:
+   Summary + 8 menu monitoring di bawah (PROJECT_MENU_KEYS).
+   Yang membedakan data antar proyek bukan menunya, tapi sumber
+   spreadsheet-nya — tiap request ke /api/sheet menyertakan
+   `project=<id proyek>`, lalu backend (functions/[[catchall]].js)
+   memilih SPREADSHEET_ID sesuai proyek lewat environment variable
+   Cloudflare bernama `SPREADSHEET_ID_<ID_PROYEK_UPPERCASE>`
+   (mis. proyek id "mcdermott" -> env var SPREADSHEET_ID_MCDERMOTT).
+   Kalau env var per-proyek itu belum diisi, backend otomatis
+   jatuh ke env var default `SPREADSHEET_ID`.
+   ============================================================ */
+const PROJECT_MENU_KEYS = ["lle","tender-drawing","forcon-drawing","shop-drawing","material-approval","method-of-work","rfi","site-instruction"];
+
+const BUILTIN_PROJECTS = [
+  { id: "amali",     title: "Amali Luxury Residence Project", desc: "Pecatu, Badung-Bali — MEP monitoring", menus: PROJECT_MENU_KEYS },
+  { id: "mcdermott", title: "Mc Dermott Project",              desc: "MEP monitoring", menus: PROJECT_MENU_KEYS },
+];
+
+const PROJECTS_STORE_KEY = "monitoringProyek.customProjects";
+function loadCustomProjects(){
+  try{ return JSON.parse(localStorage.getItem(PROJECTS_STORE_KEY) || "[]"); }
+  catch(e){ return []; }
+}
+function saveCustomProjects(list){
+  try{ localStorage.setItem(PROJECTS_STORE_KEY, JSON.stringify(list)); }catch(e){}
+}
+function allProjects(){
+  return [...BUILTIN_PROJECTS, ...loadCustomProjects()];
+}
+function getProject(id){
+  return allProjects().find(p => p.id === id);
+}
+
+/* navState: "root" | "operation" | "engineering" | "project"
+   activeProjectId: id proyek aktif ketika navState === "project" */
+let navState = "root";
+let activeProjectId = null;
+
 let cache = {};        // menu -> {header, rows}
 let activeMenu = "summary";
 
@@ -649,11 +745,20 @@ const lastSyncEl = document.getElementById("lastSync");
 const refreshBtn = document.getElementById("refreshBtn");
 
 document.getElementById("nav").addEventListener("click", (e) => {
-  const btn = e.target.closest(".nav-item");
-  if (!btn) return;
-  setActive(btn.dataset.menu);
+  const back = e.target.closest(".nav-back");
+  if (back){ goBack(); return; }
+  const addBtn = e.target.closest("[data-action='add-project']");
+  if (addBtn){ promptAddProject(); return; }
+  const dept = e.target.closest("[data-dept]");
+  if (dept){ goDepartment(dept.dataset.dept); return; }
+  const proj = e.target.closest("[data-project]");
+  if (proj){ goProject(proj.dataset.project); return; }
+  const btn = e.target.closest(".nav-item[data-menu]");
+  if (btn){ setActive(btn.dataset.menu); return; }
 });
-refreshBtn.addEventListener("click", () => loadMenu(activeMenu, true));
+refreshBtn.addEventListener("click", () => {
+  if (navState === "project" && activeMenu) loadMenu(activeMenu, true);
+});
 
 function pickRenderer(menu){
   if (MENUS[menu].docStyle) return renderDocTable;
@@ -666,14 +771,179 @@ function pickRenderer(menu){
   return renderTable;
 }
 
+/* ---------------- Navigasi tingkat: Home > Operation/Engineering > Proyek > Menu ---------------- */
+
+function goHome(){
+  navState = "root";
+  activeProjectId = null;
+  refreshBtn.style.display = "none";
+  pageTitleEl.textContent = "Menu Utama";
+  pageDescEl.textContent = "Pilih departemen untuk melanjutkan";
+  renderNav();
+  renderHomeContent();
+}
+
+function goDepartment(dept){
+  if (dept === "operation"){
+    navState = "operation";
+    activeProjectId = null;
+    refreshBtn.style.display = "none";
+    pageTitleEl.textContent = "Operation";
+    pageDescEl.textContent = "Menu Operation";
+    renderNav();
+    contentEl.innerHTML = `<div class="state-box">Menu Operation belum tersedia. Beri tahu saya isi menu yang diinginkan untuk ditambahkan di sini.</div>`;
+    return;
+  }
+  navState = "engineering";
+  activeProjectId = null;
+  refreshBtn.style.display = "none";
+  pageTitleEl.textContent = "Engineering";
+  pageDescEl.textContent = "Pilih proyek untuk melihat menu monitoring";
+  renderNav();
+  renderEngineeringContent();
+}
+
+function goProject(projectId){
+  if (projectId === "__all__"){
+    navState = "engineering";
+    activeProjectId = null;
+    refreshBtn.style.display = "none";
+    pageTitleEl.textContent = "Summary All Project";
+    pageDescEl.textContent = "Ikhtisar status seluruh proyek Engineering";
+    renderNav();
+    renderAllProjectsSummary();
+    return;
+  }
+  const project = getProject(projectId);
+  if (!project) return;
+  navState = "project";
+  activeProjectId = projectId;
+  renderNav();
+  if (!project.menus.length){
+    refreshBtn.style.display = "none";
+    pageTitleEl.textContent = project.title;
+    pageDescEl.textContent = project.desc || "";
+    contentEl.innerHTML = `<div class="state-box">Menu monitoring untuk proyek ini belum dibuat.<div class="mono">Tambahkan menu (sheet) untuk "${escapeHtml(project.title)}" agar tampil di sini — pola sama seperti Amali Luxury Residence Project.</div></div>`;
+    return;
+  }
+  setActive("summary");
+}
+
+function goBack(){
+  if (navState === "project"){ goDepartment("engineering"); return; }
+  if (navState === "engineering" || navState === "operation"){ goHome(); return; }
+  goHome();
+}
+
+function promptAddProject(){
+  const name = window.prompt("Nama proyek baru:");
+  if (!name || !name.trim()) return;
+  const title = name.trim();
+  const id = "custom-" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now().toString(36);
+  const list = loadCustomProjects();
+  list.push({ id, title, desc: "MEP monitoring", menus: PROJECT_MENU_KEYS });
+  saveCustomProjects(list);
+  renderNav();
+  renderEngineeringContent();
+}
+
+function renderNav(){
+  const navEl = document.getElementById("nav");
+
+  if (navState === "root"){
+    navEl.innerHTML = `
+      <div class="nav-group-label">Menu Utama</div>
+      <button class="nav-item" data-dept="operation"><span class="idx">01</span>Operation</button>
+      <button class="nav-item active" data-dept="engineering"><span class="idx">02</span>Engineering</button>
+    `;
+    return;
+  }
+
+  if (navState === "operation"){
+    navEl.innerHTML = `
+      <button class="nav-back" data-action="back">&larr; Kembali ke Menu Utama</button>
+      <div class="nav-crumb"><span>Home</span><span class="sep">/</span><span class="here">Operation</span></div>
+      <div class="nav-group-label">Operation</div>
+      <div style="padding:8px 12px;font-size:12px;color:var(--steel-400);">Belum ada sub-menu.</div>
+    `;
+    return;
+  }
+
+  if (navState === "engineering"){
+    const projects = allProjects();
+    navEl.innerHTML = `
+      <button class="nav-back" data-action="back">&larr; Kembali ke Menu Utama</button>
+      <div class="nav-crumb"><span>Home</span><span class="sep">/</span><span class="here">Engineering</span></div>
+      <div class="nav-group-label">Proyek</div>
+      <button class="nav-item" data-project="__all__"><span class="idx">00</span>Summary All Project</button>
+      ${projects.map((p, i) => `<button class="nav-item" data-project="${escapeHtml(p.id)}"><span class="idx">${String(i+1).padStart(2,"0")}</span>${escapeHtml(p.title)}</button>`).join("")}
+      <button class="nav-item" data-action="add-project" style="color:var(--amber);">+ Tambah Project</button>
+    `;
+    return;
+  }
+
+  if (navState === "project"){
+    const project = getProject(activeProjectId);
+    const title = project ? project.title : "";
+    const menus = project ? project.menus : [];
+    navEl.innerHTML = `
+      <button class="nav-back" data-action="back">&larr; Kembali ke Daftar Proyek</button>
+      <div class="nav-crumb"><span>Home</span><span class="sep">/</span><span>Engineering</span><span class="sep">/</span><span class="here">${escapeHtml(title)}</span></div>
+      <div class="nav-group-label">Ringkasan</div>
+      <button class="nav-item ${activeMenu === "summary" ? "active" : ""}" data-menu="summary"><span class="idx">00</span>Summary</button>
+      ${menus.length ? `<div class="nav-group-label">Monitoring</div>` : ""}
+      ${menus.map((m, i) => `<button class="nav-item ${activeMenu === m ? "active" : ""}" data-menu="${m}"><span class="idx">${String(i+1).padStart(2,"0")}</span>${escapeHtml(MENUS[m].title)}</button>`).join("")}
+    `;
+  }
+}
+
+function renderHomeContent(){
+  contentEl.innerHTML = `
+    <div class="home-grid">
+      <div class="home-card" data-dept="operation">
+        <div class="home-card-eyebrow">Departemen</div>
+        <div class="home-card-title">Operation</div>
+        <div class="home-card-desc">Menu Operation — segera hadir.</div>
+      </div>
+      <div class="home-card" data-dept="engineering">
+        <div class="home-card-eyebrow">Departemen</div>
+        <div class="home-card-title">Engineering</div>
+        <div class="home-card-desc">Monitoring dokumen &amp; progres per proyek (Shop Drawing, Material Approval, RFI, dll).</div>
+      </div>
+    </div>`;
+  contentEl.querySelectorAll("[data-dept]").forEach(el => el.addEventListener("click", () => goDepartment(el.dataset.dept)));
+}
+
+function renderEngineeringContent(){
+  const projects = allProjects();
+  contentEl.innerHTML = `
+    <div class="home-grid">
+      <div class="project-card is-summary" data-project="__all__">
+        <div class="project-card-title">Summary All Project</div>
+        <div class="project-card-desc">Ringkasan status seluruh proyek Engineering</div>
+      </div>
+      ${projects.map(p => `
+        <div class="project-card" data-project="${escapeHtml(p.id)}">
+          <div class="project-card-title">${escapeHtml(p.title)}</div>
+          <div class="project-card-desc">${escapeHtml(p.desc || "")}</div>
+        </div>`).join("")}
+      <button class="project-card project-card-add" data-action="add-project">+ Tambah Project</button>
+    </div>`;
+  contentEl.querySelectorAll("[data-project]").forEach(el => el.addEventListener("click", () => goProject(el.dataset.project)));
+  const addBtn = contentEl.querySelector("[data-action='add-project']");
+  if (addBtn) addBtn.addEventListener("click", promptAddProject);
+}
+
 function setActive(menu){
   activeMenu = menu;
-  document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.menu === menu));
+  document.querySelectorAll(".nav-item[data-menu]").forEach(b => b.classList.toggle("active", b.dataset.menu === menu));
   if (menu === "summary"){
+    refreshBtn.style.display = "none";
     pageTitleEl.textContent = "Summary";
     pageDescEl.textContent = "Ikhtisar status seluruh menu monitoring proyek";
     renderSummary();
   } else {
+    refreshBtn.style.display = "flex";
     pageTitleEl.textContent = MENUS[menu].title;
     pageDescEl.textContent = DESCRIPTIONS[menu] || "";
     loadMenu(menu);
@@ -693,10 +963,16 @@ function guessStatusColIndex(header){
   return header.findIndex(h => /status/i.test(h));
 }
 
-async function fetchMenu(menu){
+function cacheKey(projectId, menu){
+  return `${projectId || "_"}::${menu}`;
+}
+
+async function fetchMenu(menu, projectId){
   const cfg = MENUS[menu];
   try{
-    const res = await fetch(`/api/sheet?sheet=${encodeURIComponent(cfg.sheetName)}`);
+    const qs = new URLSearchParams({ sheet: cfg.sheetName });
+    if (projectId) qs.set("project", projectId);
+    const res = await fetch(`/api/sheet?${qs.toString()}`);
     const data = await res.json().catch(() => null);
     if (res.ok && data && !data.error && data.header && data.header.length){
       return { ...data, offline: false };
@@ -709,15 +985,16 @@ async function fetchMenu(menu){
 }
 
 async function loadMenu(menu, forceRefresh){
-  if (cache[menu] && !forceRefresh){
-    pickRenderer(menu)(menu, cache[menu]);
+  const key = cacheKey(activeProjectId, menu);
+  if (cache[key] && !forceRefresh){
+    pickRenderer(menu)(menu, cache[key]);
     return;
   }
   renderLoading();
   refreshBtn.classList.add("spinning");
   try{
-    const data = await fetchMenu(menu);
-    cache[menu] = data;
+    const data = await fetchMenu(menu, activeProjectId);
+    cache[key] = data;
     lastSyncEl.textContent = "Sinkron " + new Date().toLocaleTimeString('id-ID');
     if (activeMenu === menu) pickRenderer(menu)(menu, data);
   }catch(err){
@@ -1867,10 +2144,15 @@ function smySectionHtml(no, title, categories, data, totals, rowsCfg){
     </div>`;
 }
 
-async function renderSummary(){
-  contentEl.innerHTML = `<div class="state-box"><div class="spinner"></div>Memuat ringkasan…</div>`;
+/* Hitung metrik Shop Dwg / Material Approval / Method of Work / RFI untuk
+   satu proyek tertentu. Dipakai baik oleh Summary per-proyek maupun oleh
+   Summary All Project (daftar semua proyek). */
+async function computeProjectMetrics(projectId){
   const need = ["shop-drawing", "material-approval", "method-of-work", "rfi"];
-  const results = await Promise.allSettled(need.map(m => (cache[m] ? Promise.resolve(cache[m]) : fetchMenu(m).then(d => { cache[m] = d; return d; }))));
+  const results = await Promise.allSettled(need.map(m => {
+    const key = cacheKey(projectId, m);
+    return cache[key] ? Promise.resolve(cache[key]) : fetchMenu(m, projectId).then(d => { cache[key] = d; return d; });
+  }));
   const [sdRes, maRes, mowRes, rfiRes] = results;
   const rowsOf = r => (r.status === "fulfilled" ? (r.value.rows || []) : []);
 
@@ -1891,6 +2173,14 @@ async function renderSummary(){
   const sdTotals = totalsOfBreakdown(sdB.categories, sdB.data);
   const maTotals = totalsOfBreakdown(maB.categories, maB.data);
   const mowTotals = totalsOfBreakdown(mowB.categories, mowB.data);
+
+  return { sdB, maB, mowB, sdTotals, maTotals, mowTotals, rfiSubmit, rfiReplied, rfiNotReplied };
+}
+
+async function renderSummary(){
+  contentEl.innerHTML = `<div class="state-box"><div class="spinner"></div>Memuat ringkasan…</div>`;
+  const { sdB, maB, mowB, sdTotals, maTotals, mowTotals, rfiSubmit, rfiReplied, rfiNotReplied } =
+    await computeProjectMetrics(activeProjectId);
 
   const now = new Date();
   const updatedStr = now.toLocaleDateString('id-ID') + " " + now.toLocaleTimeString('id-ID');
@@ -1928,6 +2218,75 @@ async function renderSummary(){
       </div>
     </div>
   `;
+}
+
+/* Summary All Project: daftar semua proyek + persentase submission tiap
+   kategori (Shop Dwg, Material Approval, Method of Work, RFI). Klik nama
+   proyek untuk expand/collapse bar chart proyek tersebut. */
+async function renderAllProjectsSummary(){
+  contentEl.innerHTML = `<div class="state-box"><div class="spinner"></div>Memuat ringkasan semua proyek…</div>`;
+  const projects = allProjects();
+
+  const metrics = await Promise.all(projects.map(p => computeProjectMetrics(p.id)));
+
+  const items = projects.map((p, i) => {
+    const m = metrics[i];
+    const sdPct = pct(m.sdTotals.submitted, m.sdTotals.planned);
+    const maPct = pct(m.maTotals.submitted, m.maTotals.planned);
+    const mowPct = pct(m.mowTotals.submitted, m.mowTotals.planned);
+    const rfiPct = pct(m.rfiReplied, m.rfiSubmit);
+    return { project: p, sdPct, maPct, mowPct, rfiPct };
+  });
+
+  const now = new Date();
+  const updatedStr = now.toLocaleDateString('id-ID') + " " + now.toLocaleTimeString('id-ID');
+
+  const badgesHtml = it => `
+    <div class="allproj-badges">
+      <div class="allproj-badge"><span class="pct-num">${it.sdPct}%</span><span class="pct-lbl">Shop Dwg</span></div>
+      <div class="allproj-badge"><span class="pct-num">${it.maPct}%</span><span class="pct-lbl">Mat. Approval</span></div>
+      <div class="allproj-badge"><span class="pct-num">${it.mowPct}%</span><span class="pct-lbl">Method of Work</span></div>
+      <div class="allproj-badge"><span class="pct-num">${it.rfiPct}%</span><span class="pct-lbl">RFI Replied</span></div>
+    </div>`;
+
+  const bodyHtml = it => {
+    const categories = ["Shop Dwg", "Material Approval", "Method of Work", "RFI Replied"];
+    const values = [it.sdPct, it.maPct, it.mowPct, it.rfiPct];
+    return `
+      <div class="allproj-body-inner">
+        <div class="chart-card-title" style="margin-bottom:14px;">Submission % per Kategori — ${escapeHtml(it.project.title)}</div>
+        ${svgBarChart(categories, values)}
+      </div>`;
+  };
+
+  contentEl.innerHTML = `
+    <div class="smy-page-head">
+      <div class="smy-page-title">SUMMARY ALL PROJECT</div>
+      <div class="smy-page-updated">UPDATED: ${escapeHtml(updatedStr)}</div>
+    </div>
+    <div class="allproj-list">
+      ${items.map(it => `
+        <div class="allproj-item" data-allproj="${escapeHtml(it.project.id)}">
+          <div class="allproj-head">
+            <div class="allproj-head-left">
+              <span class="allproj-chevron">&#9656;</span>
+              <span class="allproj-name">${escapeHtml(it.project.title)}</span>
+            </div>
+            ${badgesHtml(it)}
+          </div>
+          <div class="allproj-body">${bodyHtml(it)}</div>
+        </div>`).join("")}
+    </div>
+  `;
+
+  contentEl.querySelectorAll(".allproj-head").forEach(head => {
+    head.addEventListener("click", () => {
+      const item = head.closest(".allproj-item");
+      const wasOpen = item.classList.contains("open");
+      contentEl.querySelectorAll(".allproj-item.open").forEach(el => { if (el !== item) el.classList.remove("open"); });
+      item.classList.toggle("open", !wasOpen);
+    });
+  });
 }
 
 function escapeHtml(v){
@@ -1989,7 +2348,7 @@ async function submitAddModal(menu, header){
     const res = await fetch("/api/sheet", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sheetName: MENUS[menu].sheetName, values }),
+      body: JSON.stringify({ sheetName: MENUS[menu].sheetName, values, project: activeProjectId }),
     });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data || data.error){
@@ -2006,7 +2365,7 @@ async function submitAddModal(menu, header){
 }
 
 // init
-setActive("summary");
+goHome();
 </script>
 </body>
 </html>
