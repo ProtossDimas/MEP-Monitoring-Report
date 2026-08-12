@@ -1,5 +1,7 @@
-// Ganti dengan ID spreadsheet kamu (bagian di URL antara /d/ dan /edit)
-const SPREADSHEET_ID = "GANTI_DENGAN_SPREADSHEET_ID";
+// Fallback kalau environment variable SPREADSHEET_ID belum diisi di Cloudflare.
+// Kalau kamu sudah mengisi env var SPREADSHEET_ID di Cloudflare Pages > Settings >
+// Environment Variables, nilai di sini akan DIABAIKAN (env var yang menang).
+const SPREADSHEET_ID_FALLBACK = "GANTI_DENGAN_SPREADSHEET_ID";
 
 /* ============================================================
    Untuk fitur "Tambah Data" (tulis ke spreadsheet) diperlukan
@@ -8,10 +10,12 @@ const SPREADSHEET_ID = "GANTI_DENGAN_SPREADSHEET_ID";
       Google Sheets API, buat key JSON.
    2. Share spreadsheet ke email service account itu sebagai Editor.
    3. Di Cloudflare Pages > Settings > Environment Variables, isi:
-      - GOOGLE_SERVICE_ACCOUNT_EMAIL = client_email dari JSON
-      - GOOGLE_PRIVATE_KEY          = private_key dari JSON (apa adanya, termasuk \n)
-   Tanpa ini, pembacaan data (GET) tetap jalan, hanya "Tambah Data"
-   yang tidak akan tersimpan.
+      - SPREADSHEET_ID                = ID spreadsheet (dari URL /d/.../edit)
+      - GOOGLE_SERVICE_ACCOUNT_EMAIL   = client_email dari JSON
+      - GOOGLE_PRIVATE_KEY             = private_key dari JSON (apa adanya, termasuk \n)
+        (nama GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY juga didukung sebagai alternatif)
+   Tanpa service account, pembacaan data (GET) tetap jalan, hanya
+   "Tambah Data" yang tidak akan tersimpan.
    ============================================================ */
 
 export async function onRequest(context) {
@@ -20,17 +24,26 @@ export async function onRequest(context) {
 
   if (url.pathname === "/api/sheet") {
     if (request.method === "POST") return handleAppend(request, env);
-    return handleSheet(url);
+    return handleSheet(url, env);
   }
 
   return context.env.ASSETS ? context.env.ASSETS.fetch(request) : new Response("Not found", { status: 404 });
 }
 
-async function handleSheet(url) {
+function getSpreadsheetId(env) {
+  return (env && env.SPREADSHEET_ID) || SPREADSHEET_ID_FALLBACK;
+}
+
+function getPrivateKey(env) {
+  return (env && (env.GOOGLE_PRIVATE_KEY || env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY)) || "";
+}
+
+async function handleSheet(url, env) {
   const sheetName = url.searchParams.get("sheet") || "";
+  const SPREADSHEET_ID = getSpreadsheetId(env);
 
   if (!SPREADSHEET_ID || SPREADSHEET_ID === "GANTI_DENGAN_SPREADSHEET_ID") {
-    return json({ error: "SPREADSHEET_ID belum diisi di functions/[[catchall]].js" }, 500);
+    return json({ error: "SPREADSHEET_ID belum diisi. Isi environment variable SPREADSHEET_ID di Cloudflare Pages (Settings > Environment variables), lalu redeploy." }, 500);
   }
   if (!sheetName) {
     return json({ error: "Parameter sheet (nama tab) belum diisi." }, 400);
@@ -82,10 +95,13 @@ async function handleSheet(url) {
 }
 
 async function handleAppend(request, env) {
+  const SPREADSHEET_ID = getSpreadsheetId(env);
+
   if (!SPREADSHEET_ID || SPREADSHEET_ID === "GANTI_DENGAN_SPREADSHEET_ID") {
-    return json({ error: "SPREADSHEET_ID belum diisi di functions/[[catchall]].js" }, 500);
+    return json({ error: "SPREADSHEET_ID belum diisi. Isi environment variable SPREADSHEET_ID di Cloudflare Pages (Settings > Environment variables), lalu redeploy." }, 500);
   }
-  if (!env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !env.GOOGLE_PRIVATE_KEY) {
+  const privateKey = getPrivateKey(env);
+  if (!env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !privateKey) {
     return json({ error: "Backend belum dikonfigurasi untuk menulis data (GOOGLE_SERVICE_ACCOUNT_EMAIL / GOOGLE_PRIVATE_KEY belum diisi di environment variables)." }, 500);
   }
 
@@ -103,7 +119,7 @@ async function handleAppend(request, env) {
 
   let accessToken;
   try {
-    accessToken = await getAccessToken(env);
+    accessToken = await getAccessToken(env, privateKey);
   } catch (e) {
     return json({ error: "Gagal autentikasi ke Google: " + e.message }, 500);
   }
@@ -129,9 +145,9 @@ async function handleAppend(request, env) {
 }
 
 /* ---- Service account JWT -> OAuth2 access token (Web Crypto, RS256) ---- */
-async function getAccessToken(env) {
+async function getAccessToken(env, privateKey) {
   const email = env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKeyPem = env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, "\n");
+  const privateKeyPem = privateKey.replace(/\\n/g, "\n");
 
   const header = { alg: "RS256", typ: "JWT" };
   const now = Math.floor(Date.now() / 1000);
