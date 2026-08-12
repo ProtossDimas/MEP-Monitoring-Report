@@ -27,13 +27,18 @@ export async function onRequest(context) {
 }
 
 async function handleSheet(url) {
-  const gid = url.searchParams.get("gid") || "0";
+  const sheetName = url.searchParams.get("sheet") || "";
 
   if (!SPREADSHEET_ID || SPREADSHEET_ID === "GANTI_DENGAN_SPREADSHEET_ID") {
     return json({ error: "SPREADSHEET_ID belum diisi di functions/[[catchall]].js" }, 500);
   }
+  if (!sheetName) {
+    return json({ error: "Parameter sheet (nama tab) belum diisi." }, 400);
+  }
 
-  const gvizUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=${encodeURIComponent(gid)}`;
+  // gviz mendukung identifikasi tab lewat nama tab langsung (&sheet=...),
+  // jadi tidak perlu lagi mencari/mengisi angka gid per tab secara manual.
+  const gvizUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
   let res;
   try {
@@ -49,7 +54,7 @@ async function handleSheet(url) {
   const text = await res.text();
   const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
   if (!match) {
-    return json({ error: "Format respons Google Sheets tidak dikenali. Cek apakah gid dan akses sheet sudah benar." }, 502);
+    return json({ error: "Format respons Google Sheets tidak dikenali. Cek apakah nama tab dan akses sheet sudah benar." }, 502);
   }
 
   let parsed;
