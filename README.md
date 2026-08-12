@@ -49,41 +49,37 @@ Google Sheets (database)  <-->  functions/[[catchall]].js (API proxy)  <-->  ind
 
 ---
 
-## 3. WAJIB: Set GID per Tab (sumber error paling umum)
+## 3. Tidak Perlu Set GID — Tab Dibaca Lewat Nama
 
-Google Sheets mengidentifikasi tiap tab dengan angka **`gid`** (bukan nama tab) saat dibaca
-lewat endpoint `gviz` yang dipakai kode `GET /api/sheet`. Di `index.html`, konstanta `MENUS`
-saat ini masih memakai **`gid: "0"` untuk semua menu** (nilai placeholder) — kalau ini
-tidak diperbaiki, **semua menu akan menampilkan data dari tab pertama saja (LLE)**, bukan
-error yang jelas kelihatan, tapi datanya salah/duplikat.
+Versi ini membaca data lewat nama tab (`&sheet=NamaTab`), **bukan** lewat angka `gid`.
+Jadi kamu **tidak perlu** buka tiap tab satu-satu untuk mencatat angka `gid` di URL —
+langkah yang dulu jadi sumber error paling umum (kalau lupa/salah isi, semua menu
+ke-baca dari tab pertama).
 
-**Cara memperbaiki:**
+Yang perlu kamu pastikan hanya satu hal: **nama tab di spreadsheet harus sama persis**
+(termasuk besar/kecil huruf) dengan `sheetName` yang sudah didefinisikan di konstanta
+`MENUS` pada `index.html`:
 
-1. Buka spreadsheet, klik tiap tab satu per satu.
-2. Lihat URL browser — akan berubah jadi seperti:
-   `...edit#gid=1849013822` → catat angka setelah `gid=` untuk tab tersebut.
-3. Buka `index.html`, cari konstanta `MENUS` (dekat awal tag `<script>`), lalu isi
-   `gid` masing-masing menu dengan angka yang sesuai, contoh:
+```js
+const MENUS = {
+  "lle":               { title: "Monitoring LLE", sheetName: "LLE", docStyle: true },
+  "tender-drawing":     { title: "Monitoring Tender Drawing", sheetName: "Tender Drawing", revisionStyle: true },
+  "forcon-drawing":     { title: "Monitoring Forcon Drawing", sheetName: "Forcon Drawing", revisionStyle: true },
+  "shop-drawing":       { title: "Monitoring Shop Drawing", sheetName: "Shop Drawing", shopDrawingStyle: true },
+  "material-approval":  { title: "Monitoring Material Approval Submittal", sheetName: "Material Approval", materialApprovalStyle: true },
+  "method-of-work":     { title: "Monitoring Method of Work", sheetName: "Method of Work", methodOfWorkStyle: true },
+  "rfi":                { title: "Monitoring RFI", sheetName: "RFI", rfiStyle: true },
+  "site-instruction":   { title: "Monitoring Site Instruction", sheetName: "Site Instruction", siStyle: true },
+};
+```
 
-   ```js
-   const MENUS = {
-     "lle":               { title: "Monitoring LLE", gid: "0", sheetName: "LLE", docStyle: true },
-     "tender-drawing":     { title: "Monitoring Tender Drawing", gid: "184901382", sheetName: "Tender Drawing", revisionStyle: true },
-     "forcon-drawing":     { title: "Monitoring Forcon Drawing", gid: "298374651", sheetName: "Forcon Drawing", revisionStyle: true },
-     "shop-drawing":       { title: "Monitoring Shop Drawing", gid: "402938475", sheetName: "Shop Drawing", shopDrawingStyle: true },
-     "material-approval":  { title: "Monitoring Material Approval Submittal", gid: "512873645", sheetName: "Material Approval", materialApprovalStyle: true },
-     "method-of-work":     { title: "Monitoring Method of Work", gid: "623948571", sheetName: "Method of Work", methodOfWorkStyle: true },
-     "rfi":                { title: "Monitoring RFI", gid: "734859201", sheetName: "RFI", rfiStyle: true },
-     "site-instruction":   { title: "Monitoring Site Instruction", gid: "845736920", sheetName: "Site Instruction" },
-   };
-   ```
+Kalau kamu memakai nama tab persis seperti bagian 2 langkah 3 di atas (tanpa rename),
+`sheetName` di atas sudah cocok dan **tidak perlu diubah sama sekali** — langsung lanjut
+ke bagian 4.
 
-   Tab pertama (paling kiri) biasanya memang `gid=0` — jadi kalau tab **LLE** ada di paling
-   kiri, nilai `"0"` untuk `lle` sudah benar dan tidak perlu diubah.
-4. Simpan `index.html`, lalu deploy ulang (lihat bagian 5).
-
-> Tip: kamu tidak perlu mengubah `sheetName` — nilai itu dipakai khusus untuk fitur
-> "Tambah Data" (POST), dan harus sama persis dengan nama tab (case-sensitive).
+Kalau kamu memang ingin rename tab, ubah `sheetName` menu yang bersangkutan di `MENUS`
+supaya sama persis dengan nama tab barunya (dipakai untuk baca data **dan** untuk fitur
+"Tambah Data").
 
 ---
 
@@ -171,7 +167,7 @@ donut chart distribusi status) akan otomatis ter-update sesuai data terbaru.
 
 | Gejala | Penyebab | Solusi |
 |---|---|---|
-| Semua menu tampil sama / data tertukar | `gid` di `MENUS` belum diisi sesuai tab asli | Lihat bagian 3 |
+| Semua menu tampil sama / data tertukar / "Parameter sheet (nama tab) belum diisi" | `sheetName` di `MENUS` tidak sama persis dengan nama tab di spreadsheet | Lihat bagian 3 — samakan `sheetName` dengan nama tab (case-sensitive) |
 | "SPREADSHEET_ID belum diisi" | Belum diganti di `[[catchall]].js` | Lihat bagian 4 |
 | "Google Sheets menolak permintaan (HTTP 401/403)" | Spreadsheet belum di-share publik | Lihat bagian 2 langkah 5 |
 | "Belum ada data..." padahal sudah diisi | Baris data ditulis mulai dari baris 1 (menimpa header) | Data harus mulai dari baris 2, baris 1 wajib header |

@@ -420,19 +420,21 @@
 <script>
 /* ============================================================
    KONFIGURASI
-   Isi SPREADSHEET_ID dengan ID Google Sheet kamu, lalu untuk
-   setiap menu isi GID tab sheet-nya (lihat angka gid= di URL
-   saat tab itu dibuka). Sheet harus "Anyone with link: Viewer".
+   Isi SPREADSHEET_ID dengan ID Google Sheet kamu. `sheetName` harus
+   sama persis (case-sensitive) dengan nama tab di spreadsheet — dipakai
+   untuk membaca data (GET, lewat &sheet=NamaTab) sekaligus untuk fitur
+   "Tambah Data" (POST). Tidak perlu lagi mencari/mengisi angka gid.
+   Sheet harus di-share "Anyone with link: Viewer".
    ============================================================ */
 const MENUS = {
-  "lle":               { title: "Monitoring LLE",                              gid: "0", sheetName: "LLE", docStyle: true },
-  "tender-drawing":     { title: "Monitoring Tender Drawing",                    gid: "0", sheetName: "Tender Drawing", revisionStyle: true },
-  "forcon-drawing":     { title: "Monitoring Forcon Drawing",                    gid: "0", sheetName: "Forcon Drawing", revisionStyle: true },
-  "shop-drawing":        { title: "Monitoring Shop Drawing",                      gid: "0", sheetName: "Shop Drawing", shopDrawingStyle: true },
-  "material-approval":  { title: "Monitoring Material Approval Submittal",       gid: "0", sheetName: "Material Approval", materialApprovalStyle: true },
-  "method-of-work":     { title: "Monitoring Method of Work",                    gid: "0", sheetName: "Method of Work", methodOfWorkStyle: true },
-  "rfi":                { title: "Monitoring RFI",                              gid: "0", sheetName: "RFI", rfiStyle: true },
-  "site-instruction":   { title: "Monitoring Site Instruction",                  gid: "0", sheetName: "Site Instruction", siStyle: true },
+  "lle":               { title: "Monitoring LLE",                              sheetName: "LLE", docStyle: true },
+  "tender-drawing":     { title: "Monitoring Tender Drawing",                    sheetName: "Tender Drawing", revisionStyle: true },
+  "forcon-drawing":     { title: "Monitoring Forcon Drawing",                    sheetName: "Forcon Drawing", revisionStyle: true },
+  "shop-drawing":        { title: "Monitoring Shop Drawing",                      sheetName: "Shop Drawing", shopDrawingStyle: true },
+  "material-approval":  { title: "Monitoring Material Approval Submittal",       sheetName: "Material Approval", materialApprovalStyle: true },
+  "method-of-work":     { title: "Monitoring Method of Work",                    sheetName: "Method of Work", methodOfWorkStyle: true },
+  "rfi":                { title: "Monitoring RFI",                              sheetName: "RFI", rfiStyle: true },
+  "site-instruction":   { title: "Monitoring Site Instruction",                  sheetName: "Site Instruction", siStyle: true },
 };
 
 /* Header judul (tanpa logo) untuk tabel bergaya "drawing register"
@@ -694,7 +696,7 @@ function guessStatusColIndex(header){
 async function fetchMenu(menu){
   const cfg = MENUS[menu];
   try{
-    const res = await fetch(`/api/sheet?gid=${encodeURIComponent(cfg.gid)}`);
+    const res = await fetch(`/api/sheet?sheet=${encodeURIComponent(cfg.sheetName)}`);
     const data = await res.json().catch(() => null);
     if (res.ok && data && !data.error && data.header && data.header.length){
       return { ...data, offline: false };
@@ -1987,7 +1989,7 @@ async function submitAddModal(menu, header){
     const res = await fetch("/api/sheet", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ gid: MENUS[menu].gid, sheetName: MENUS[menu].sheetName, values }),
+      body: JSON.stringify({ sheetName: MENUS[menu].sheetName, values }),
     });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data || data.error){
