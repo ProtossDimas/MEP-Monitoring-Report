@@ -836,15 +836,56 @@ function goBack(){
 }
 
 function promptAddProject(){
-  const name = window.prompt("Nama proyek baru:");
-  if (!name || !name.trim()) return;
-  const title = name.trim();
-  const id = "custom-" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now().toString(36);
-  const list = loadCustomProjects();
-  list.push({ id, title, desc: "MEP monitoring", menus: PROJECT_MENU_KEYS });
-  saveCustomProjects(list);
-  renderNav();
-  renderEngineeringContent();
+  modalRoot.innerHTML = `
+    <div class="modal-overlay" id="addProjectOverlay">
+      <div class="modal-box" style="max-width:420px;">
+        <div class="modal-head">
+          <div class="modal-title">+ Tambah Project</div>
+          <button class="modal-close" id="addProjectCloseBtn">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label for="addProjectName">Nama proyek baru</label>
+            <input type="text" id="addProjectName" placeholder="mis. Sentul City Project">
+          </div>
+        </div>
+        <div class="modal-error" id="addProjectError" style="display:none;"></div>
+        <div class="modal-foot">
+          <button class="btn-secondary" id="addProjectCancelBtn">Batal</button>
+          <button class="btn-primary" id="addProjectSaveBtn">Tambah Project</button>
+        </div>
+      </div>
+    </div>
+  `;
+  const overlay = document.getElementById("addProjectOverlay");
+  const input = document.getElementById("addProjectName");
+  const errEl = document.getElementById("addProjectError");
+  const close = () => { modalRoot.innerHTML = ""; };
+
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+  document.getElementById("addProjectCloseBtn").addEventListener("click", close);
+  document.getElementById("addProjectCancelBtn").addEventListener("click", close);
+
+  const submit = () => {
+    const title = input.value.trim();
+    if (!title){
+      errEl.textContent = "Nama proyek tidak boleh kosong.";
+      errEl.style.display = "block";
+      input.focus();
+      return;
+    }
+    const id = "custom-" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Date.now().toString(36);
+    const list = loadCustomProjects();
+    list.push({ id, title, desc: "MEP monitoring", menus: PROJECT_MENU_KEYS });
+    saveCustomProjects(list);
+    close();
+    renderNav();
+    renderEngineeringContent();
+  };
+
+  document.getElementById("addProjectSaveBtn").addEventListener("click", submit);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+  input.focus();
 }
 
 function renderNav(){
