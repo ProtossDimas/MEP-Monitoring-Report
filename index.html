@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitoring Proyek</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#0b1220;
+    --navy-900:#101a2e;
+    --navy-800:#16233d;
+    --navy-700:#1e2f4f;
+    --steel-400:#8b9ab3;
+    --steel-200:#c9d2e0;
+    --paper:#f5f6f8;
+    --amber:#e2a233;
+    --amber-dim:#4a3a1d;
+    --green:#3fae6a;
+    --green-dim:#1c3527;
+    --red:#e2593a;
+    --red-dim:#4a2318;
+    --line:#26324a;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--paper);color:var(--navy-950);}
+  .app{display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:264px;flex-shrink:0;background:var(--navy-950);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:24px 24px;
+    background-color:var(--navy-950);
+    position:relative;color:var(--steel-200);
+    display:flex;flex-direction:column;
+  }
+  .sidebar::before{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg, rgba(11,18,32,0.2), var(--navy-950) 60%);
+  }
+  .sidebar-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;}
+  .brand{padding:28px 24px 20px;border-bottom:1px solid var(--line);}
+  .brand-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;}
+  .brand-title{font-size:19px;font-weight:800;color:#fff;margin-top:4px;letter-spacing:-.01em;}
+  .brand-sub{font-size:12px;color:var(--steel-400);margin-top:2px;}
+
+  nav{padding:16px 12px;flex:1;overflow-y:auto;}
+  .nav-group-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--steel-400);padding:10px 12px 6px;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    padding:11px 12px;border-radius:8px;border:none;background:transparent;
+    color:var(--steel-200);font-size:13.5px;font-weight:500;cursor:pointer;
+    font-family:'Inter',sans-serif;margin-bottom:2px;transition:background .15s;
+  }
+  .nav-item .idx{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--steel-400);width:18px;flex-shrink:0;}
+  .nav-item:hover{background:var(--navy-800);color:#fff;}
+  .nav-item.active{background:var(--navy-700);color:#fff;box-shadow:inset 3px 0 0 var(--amber);}
+  .nav-item.active .idx{color:var(--amber);}
+
+  .sidebar-foot{padding:14px 24px;border-top:1px solid var(--line);font-size:11px;color:var(--steel-400);font-family:'IBM Plex Mono',monospace;}
+
+  /* Main */
+  main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  header.topbar{
+    background:#fff;border-bottom:1px solid #e2e5ea;padding:22px 36px;
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .page-title{font-size:22px;font-weight:800;letter-spacing:-.01em;}
+  .page-desc{font-size:13px;color:#6b7484;margin-top:3px;}
+  .refresh-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.04em;
+    border:1px solid #d7dbe3;background:#fff;color:var(--navy-900);
+    padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600;
+    display:flex;align-items:center;gap:6px;transition:.15s;
+  }
+  .refresh-btn:hover{border-color:var(--navy-700);background:var(--paper);}
+  .refresh-btn.spinning svg{animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .content{padding:28px 36px 48px;flex:1;}
+
+  /* Summary cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px;}
+  .kpi-card{
+    background:#fff;border:1px solid #e2e5ea;border-radius:var(--radius);padding:18px 20px;
+    position:relative;overflow:hidden;
+  }
+  .kpi-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--kpi-color,var(--navy-700));}
+  .kpi-label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#8992a3;}
+  .kpi-value{font-size:30px;font-weight:800;margin-top:8px;letter-spacing:-.02em;}
+  .kpi-note{font-size:12px;color:#8992a3;margin-top:4px;}
+
+  .summary-list{background:#fff;border:1px solid #e2e5ea;border-radius:var(--radius);overflow:hidden;}
+  .summary-list-head{padding:14px 20px;border-bottom:1px solid #eef0f4;font-weight:700;font-size:13.5px;}
+  .summary-row{
+    display:flex;align-items:center;justify-content:space-between;padding:13px 20px;
+    border-bottom:1px solid #f2f3f6;font-size:13.5px;cursor:pointer;transition:background .12s;
+  }
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row:hover{background:var(--paper);}
+  .summary-row-name{font-weight:600;}
+  .summary-row-meta{display:flex;align-items:center;gap:10px;color:#8992a3;font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot.ok{background:var(--green);} .dot.warn{background:var(--amber);} .dot.bad{background:var(--red);} .dot.na{background:#c7cdd9;}
+
+  /* Table */
+  .table-wrap{background:#fff;border:1px solid #e2e5ea;border-radius:var(--radius);overflow:hidden;}
+  .table-scroll{overflow:auto;max-width:100%;}
+  table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap;}
+  thead th{
+    position:sticky;top:0;background:var(--navy-950);color:#fff;text-align:left;
+    padding:11px 16px;font-weight:600;font-size:11.5px;letter-spacing:.03em;
+    text-transform:uppercase;font-family:'IBM Plex Mono',monospace;z-index:2;
+  }
+  tbody td{padding:10px 16px;border-bottom:1px solid #f0f1f4;color:#2a3040;}
+  tbody tr:hover{background:#f8f9fb;}
+  tbody tr:nth-child(even){background:#fbfbfc;}
+  tbody tr:nth-child(even):hover{background:#f4f5f8;}
+
+  .status-pill{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;
+    padding:3px 10px 3px 8px;border-radius:999px;font-family:'IBM Plex Mono',monospace;
+  }
+  .status-pill.ok{background:var(--green-dim);color:#7fe3a8;}
+  .status-pill.warn{background:var(--amber-dim);color:#f2c266;}
+  .status-pill.bad{background:var(--red-dim);color:#f29584;}
+  .status-pill.na{background:#eceff3;color:#7a8195;}
+
+  .state-box{padding:60px 20px;text-align:center;color:#8992a3;}
+  .state-box.error{color:var(--red);}
+  .state-box .mono{font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:8px;color:#8992a3;}
+  .spinner{width:26px;height:26px;border:3px solid #e2e5ea;border-top-color:var(--navy-700);border-radius:50%;margin:0 auto 14px;animation:spin .7s linear infinite;}
+
+  .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+  .search-box{
+    display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d7dbe3;
+    border-radius:8px;padding:8px 12px;font-size:13px;min-width:220px;
+  }
+  .search-box input{border:none;outline:none;font-size:13px;font-family:'Inter',sans-serif;width:100%;background:transparent;}
+  .row-count{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8992a3;}
+
+  /* Document-style sheet (LLE, dsb) */
+  .doc-sheet{background:#fff;border:1px solid #d7dbe3;border-radius:var(--radius);overflow:hidden;}
+  .doc-header{display:flex;align-items:center;gap:20px;padding:22px 28px;border-bottom:2px solid var(--navy-950);flex-wrap:wrap;}
+  .doc-logo{height:46px;width:auto;flex-shrink:0;object-fit:contain;}
+  .doc-logo-placeholder{
+    height:46px;width:46px;flex-shrink:0;border:1px dashed #c7cdd9;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;font-size:9px;color:#a7aebc;
+    font-family:'IBM Plex Mono',monospace;text-align:center;line-height:1.2;
+  }
+  .doc-company{font-size:15px;font-weight:800;letter-spacing:.01em;margin-bottom:6px;}
+  .doc-meta{display:grid;grid-template-columns:auto auto 1fr;column-gap:10px;row-gap:2px;font-size:12.5px;}
+  .doc-meta-label{font-weight:700;color:var(--navy-950);}
+  .doc-meta-colon{color:#8992a3;}
+  .doc-meta-value{color:#2a3040;}
+
+  .doc-table-scroll{overflow:auto;}
+  table.doc-table{border-collapse:collapse;width:100%;font-size:12px;white-space:normal;}
+  table.doc-table th{
+    position:sticky;top:0;background:var(--navy-950);color:#fff;text-align:center;vertical-align:middle;
+    padding:9px 10px;font-weight:600;font-size:11px;letter-spacing:.01em;
+    font-family:'Inter',sans-serif;border:1px solid #2a3854;z-index:2;
+  }
+  table.doc-table td{padding:8px 10px;border:1px solid #dfe2e8;color:#2a3040;text-align:left;vertical-align:middle;}
+  table.doc-table td.center{text-align:center;}
+  table.doc-table tbody tr.doc-group-row td{
+    background:#eef0f4;font-weight:700;text-transform:uppercase;font-size:11.5px;letter-spacing:.02em;
+  }
+  table.doc-table tbody tr.doc-hold-row td{background:#f5a742;font-weight:600;}
+  table.doc-table tbody tr:hover:not(.doc-group-row):not(.doc-hold-row) td{background:#f8f9fb;}
+
+  .doc-footer{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:32px 28px 28px;border-top:1px solid #eef0f4;}
+  .doc-sig{text-align:center;font-size:12.5px;}
+  .doc-sig-label{text-decoration:underline;margin-bottom:44px;}
+  .doc-sig-name{font-weight:700;text-decoration:underline;}
+  .doc-sig-role{color:#6b7484;margin-top:2px;}
+
+  .offline-banner{
+    display:flex;align-items:center;gap:10px;background:#fdf3e3;border:1px solid #f0ddb2;
+    color:#8a6116;font-size:12.5px;padding:10px 16px;border-radius:8px;margin-bottom:14px;
+  }
+  .add-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.04em;
+    border:1px solid var(--navy-950);background:var(--navy-950);color:#fff;
+    padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:600;
+    display:flex;align-items:center;gap:6px;transition:.15s;
+  }
+  .add-btn:hover{background:var(--navy-700);}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(11,18,32,.5);display:flex;align-items:center;
+    justify-content:center;z-index:50;padding:20px;
+  }
+  .modal-box{background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:86vh;
+    display:flex;flex-direction:column;overflow:hidden;}
+  .modal-head{padding:18px 24px;border-bottom:1px solid #eef0f4;display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-size:16px;font-weight:800;}
+  .modal-close{border:none;background:transparent;cursor:pointer;color:#8992a3;font-size:18px;line-height:1;}
+  .modal-body{padding:20px 24px;overflow-y:auto;display:grid;gap:14px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:#4a5468;margin-bottom:5px;}
+  .field input{
+    width:100%;border:1px solid #d7dbe3;border-radius:8px;padding:9px 12px;font-size:13.5px;
+    font-family:'Inter',sans-serif;outline:none;
+  }
+  .field input:focus{border-color:var(--navy-700);}
+  .modal-foot{padding:16px 24px;border-top:1px solid #eef0f4;display:flex;justify-content:flex-end;gap:10px;}
+  .btn-secondary{border:1px solid #d7dbe3;background:#fff;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
+  .btn-primary{border:none;background:var(--navy-950);color:#fff;padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+  .modal-error{font-size:12.5px;color:var(--red);padding:0 24px 4px;}
+
+  /* Revision-style drawing register table (Tender/Forcon Drawing) */
+  .rev-sheet{background:#fff;border:1px solid #d7dbe3;border-radius:var(--radius);overflow:hidden;}
+  .rev-header{padding:16px 22px;border-bottom:2px solid var(--navy-950);}
+  .rev-title{font-size:13.5px;font-weight:800;color:var(--navy-950);text-transform:uppercase;letter-spacing:.01em;line-height:1.4;}
+  .rev-subtitle{font-size:12.5px;font-weight:700;color:#4a5468;text-transform:uppercase;margin-top:2px;}
+
+  .rev-table-scroll{overflow:auto;}
+  table.rev-table{border-collapse:collapse;width:100%;font-size:12px;}
+  table.rev-table th{
+    background:#fff;color:var(--navy-950);text-align:center;vertical-align:middle;
+    padding:8px 10px;font-weight:700;font-size:11px;border:1px solid #1a2436;
+    font-family:'Inter',sans-serif;
+  }
+  table.rev-table th.group-th{background:#eef0f4;text-transform:uppercase;letter-spacing:.03em;}
+  table.rev-table td{padding:8px 10px;border:1px solid #dfe2e8;color:#2a3040;text-align:left;vertical-align:middle;}
+  table.rev-table td.center{text-align:center;}
+  table.rev-table td.no-col{text-align:center;color:#4a5468;}
+  table.rev-table td.rev-date{text-align:center;color:#2a3040;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  table.rev-table tbody tr:nth-child(even){background:#fafbfc;}
+  table.rev-table tbody tr:hover{background:#f4f6fa;}
+
+  /* Shop Drawing form (kop + tabel 3 tingkat) */
+  .sd-sheet{background:#fff;border:1px solid #d7dbe3;border-radius:var(--radius);overflow:hidden;}
+  .sd-header{border-bottom:2px solid #0b1220;padding:16px 20px;display:grid;grid-template-columns:1.3fr 1fr;gap:18px;}
+  .sd-logos{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .sd-logo{height:38px;width:auto;object-fit:contain;}
+  .sd-logo-placeholder{
+    height:38px;padding:0 10px;border:1px dashed #c7cdd9;border-radius:6px;display:flex;
+    align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#a7aebc;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .sd-tagline{font-size:11px;color:#6b7484;margin-left:2px;}
+  .sd-notes{margin-top:10px;font-size:11.5px;color:#2a3040;line-height:1.6;}
+  .sd-notes b{font-weight:700;}
+  .sd-right{font-size:11.5px;}
+  .sd-lembar{text-align:right;font-weight:700;color:var(--navy-950);margin-bottom:8px;}
+  .sd-nama-row{display:flex;gap:6px;}
+  .sd-nama-row .code{font-weight:700;width:36px;flex-shrink:0;}
+  .sd-status-title{font-weight:700;color:#1f4fb0;margin-top:10px;margin-bottom:2px;}
+  .sd-status-row{display:flex;gap:8px;}
+  .sd-status-row .code{font-weight:700;width:16px;flex-shrink:0;color:#1f4fb0;}
+
+  .sd-table-scroll{overflow:auto;}
+  table.sd-table{border-collapse:collapse;width:100%;font-size:11.5px;}
+  table.sd-table th{
+    background:#c3d4ef;color:#12224a;text-align:center;vertical-align:middle;
+    padding:6px 8px;font-weight:700;font-size:10.5px;border:1px solid #6f88b8;
+    font-family:'Inter',sans-serif;
+  }
+  table.sd-table th.italic{font-style:italic;font-weight:600;}
+  table.sd-table td{padding:6px 8px;border:1px solid #d7dee9;color:#2a3040;text-align:center;vertical-align:middle;}
+  table.sd-table td.left{text-align:left;}
+  table.sd-table tbody tr.sd-group-row td{background:#dbe6f7;font-weight:700;text-align:left;text-transform:uppercase;font-size:11px;}
+  table.sd-table tbody tr:nth-child(even):not(.sd-group-row){background:#f7f9fc;}
+  table.sd-table tbody tr:hover:not(.sd-group-row){background:#eef3fb;}
+
+  @media (max-width:820px){
+    .sd-header{grid-template-columns:1fr;}
+    .sd-lembar{text-align:left;}
+  }
+
+  /* Material Approval Submittal (Tabel A + Tabel B) */
+  .ma-sheet{background:#fff;border:1px solid #d7dbe3;border-radius:var(--radius);overflow:hidden;}
+  .ma-header{border-bottom:2px solid #0b1220;padding:16px 20px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .ma-title{font-size:15px;font-weight:800;color:var(--navy-950);}
+  .ma-sub{font-size:12px;color:#6b7484;margin-top:2px;}
+  .ma-info{font-size:12px;text-align:right;line-height:1.6;}
+  .ma-info b{color:var(--navy-950);}
+
+  .ma-summary-wrap{padding:16px 20px 4px;}
+  .ma-summary-title{font-size:12.5px;font-weight:800;color:var(--navy-950);text-transform:uppercase;letter-spacing:.02em;margin-bottom:8px;}
+  table.ma-summary{border-collapse:collapse;width:100%;font-size:11.5px;margin-bottom:16px;}
+  table.ma-summary th{background:#16233d;color:#fff;padding:7px 8px;border:1px solid #1a2436;font-weight:700;text-align:center;}
+  table.ma-summary td{padding:6px 8px;border:1px solid #dfe2e8;text-align:center;color:#2a3040;}
+  table.ma-summary td.label{text-align:left;font-weight:600;background:#f7f8fa;}
+
+  .ma-table-scroll{overflow:auto;}
+  table.ma-table{border-collapse:collapse;width:100%;font-size:11.5px;}
+  table.ma-table th{
+    background:#16233d;color:#fff;text-align:center;vertical-align:middle;
+    padding:6px 8px;font-weight:700;font-size:10.5px;border:1px solid #1a2436;
+    font-family:'Inter',sans-serif;
+  }
+  table.ma-table th.italic{font-style:italic;font-weight:600;}
+  table.ma-table td{padding:6px 8px;border:1px solid #dfe2e8;color:#2a3040;text-align:center;vertical-align:middle;}
+  table.ma-table td.left{text-align:left;}
+  table.ma-table tbody tr.ma-group-row td{background:#dbe6f7;font-weight:700;text-align:left;text-transform:uppercase;font-size:11px;}
+  table.ma-table tbody tr:nth-child(even):not(.ma-group-row){background:#f7f9fc;}
+  table.ma-table tbody tr:hover:not(.ma-group-row){background:#eef3fb;}
+  table.ma-table td.ma-check{color:var(--green);font-weight:800;}
+
+  .ma-legend{display:flex;gap:16px;flex-wrap:wrap;padding:12px 20px 18px;font-size:11.5px;color:#4a5468;}
+  .ma-legend span b{color:var(--navy-950);margin-right:4px;}
+  .ma-legend.stacked{flex-direction:column;gap:4px;}
+  .ma-notes{padding:0 20px 18px;font-size:11.5px;color:#2a3040;line-height:1.7;}
+  tr.ma-highlight-row td{background:#d9d9d9 !important;}
+
+  .rfi-sign{display:flex;justify-content:flex-end;gap:60px;padding:24px 20px 26px;flex-wrap:wrap;}
+  .rfi-sign-block{text-align:center;font-size:12.5px;color:#2a3040;}
+  .rfi-sign-space{height:56px;}
+  .rfi-sign-role{font-weight:700;border-top:1px solid #2a3040;padding-top:4px;min-width:160px;}
+
+  /* Summary Monitoring Engineering */
+  .smy-page-head{margin-bottom:18px;}
+  .smy-page-title{font-size:16px;font-weight:800;color:var(--navy-950);letter-spacing:.01em;}
+  .smy-page-updated{font-size:12px;color:#8992a3;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+
+  .smy-section{background:#fff;border:1px solid #e2e5ea;border-radius:var(--radius);overflow:hidden;margin-bottom:24px;}
+  .smy-section-title{background:var(--navy-950);color:#fff;padding:11px 18px;font-weight:800;font-size:13px;letter-spacing:.03em;text-transform:uppercase;}
+  .smy-table-scroll{overflow:auto;padding:16px 18px 4px;}
+  table.smy-table{border-collapse:collapse;width:100%;font-size:11.5px;white-space:nowrap;}
+  table.smy-table th{background:#16233d;color:#fff;padding:7px 8px;border:1px solid #1a2436;font-weight:700;text-align:center;}
+  table.smy-table td{padding:6px 8px;border:1px solid #dfe2e8;text-align:center;color:#2a3040;}
+  table.smy-table td.label{text-align:left;font-weight:700;background:#f7f8fa;}
+  table.smy-table td.pct-cell{color:#6b7484;font-size:10.5px;}
+  tr.smy-row-a td{background:#e2efda;}
+  tr.smy-row-a td.label{background:#d3e6c8;}
+  tr.smy-row-b td{background:#c6e0b4;}
+  tr.smy-row-b td.label{background:#b7d7a1;}
+  tr.smy-row-c td{background:#fce4d6;}
+  tr.smy-row-c td.label{background:#fad5c0;}
+  tr.smy-row-resubmit td{background:#fff2cc;}
+  tr.smy-row-resubmit td.label{background:#ffecb3;}
+
+  .summary-charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;padding:16px 18px 20px;}
+  .chart-card{background:#fbfbfc;border:1px solid #eef0f4;border-radius:8px;padding:16px 18px;}
+  .chart-card-title{font-size:11px;font-weight:800;color:var(--navy-950);margin-bottom:12px;text-transform:uppercase;letter-spacing:.03em;}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:12px;font-size:11px;color:#4a5468;}
+  .chart-legend span{display:flex;align-items:center;gap:5px;}
+  .chart-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;flex-shrink:0;}
+
+  table.smy-mini-table{border-collapse:collapse;font-size:12.5px;min-width:220px;}
+  table.smy-mini-table td{padding:8px 12px;border:1px solid #dfe2e8;}
+  table.smy-mini-table td.label{font-weight:700;}
+  table.smy-mini-table td.pct-cell{color:#4a5468;font-size:11px;}
+  tr.mini-submit td{background:#bdd7ee;}
+  tr.mini-replied td{background:#c6e0b4;}
+  tr.mini-notreplied td{background:#fff2cc;}
+
+  @media (max-width:820px){
+    .ma-header{flex-direction:column;}
+    .ma-info{text-align:left;}
+  }
+
+  @media (max-width:820px){
+    .sidebar{width:100%;position:fixed;bottom:0;top:auto;z-index:10;height:auto;}
+    .sidebar-inner{height:auto;}
+    .app{flex-direction:column;}
+    nav{display:flex;overflow-x:auto;padding:8px;gap:4px;}
+    .nav-group-label{display:none;}
+    .nav-item{white-space:nowrap;}
+    .brand,.sidebar-foot{display:none;}
+    main{padding-bottom:70px;}
+    .content{padding:20px;}
+    header.topbar{padding:18px 20px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+      <div class="brand">
+        <div class="brand-eyebrow">Project Control</div>
+        <div class="brand-title">Monitoring Proyek</div>
+        <div class="brand-sub">Sinkron langsung dari Google Sheets</div>
+      </div>
+      <nav id="nav">
+        <div class="nav-group-label">Ringkasan</div>
+        <button class="nav-item active" data-menu="summary"><span class="idx">00</span>Summary</button>
+        <div class="nav-group-label">Monitoring</div>
+        <button class="nav-item" data-menu="lle"><span class="idx">01</span>Monitoring LLE</button>
+        <button class="nav-item" data-menu="tender-drawing"><span class="idx">02</span>Monitoring Tender Drawing</button>
+        <button class="nav-item" data-menu="forcon-drawing"><span class="idx">03</span>Monitoring Forcon Drawing</button>
+        <button class="nav-item" data-menu="shop-drawing"><span class="idx">04</span>Monitoring Shop Drawing</button>
+        <button class="nav-item" data-menu="material-approval"><span class="idx">05</span>Monitoring Material Approval Submittal</button>
+        <button class="nav-item" data-menu="method-of-work"><span class="idx">06</span>Monitoring Method of Work</button>
+        <button class="nav-item" data-menu="rfi"><span class="idx">07</span>Monitoring RFI</button>
+        <button class="nav-item" data-menu="site-instruction"><span class="idx">08</span>Monitoring Site Instruction</button>
+      </nav>
+      <div class="sidebar-foot" id="lastSync">Belum sinkron</div>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">Summary</div>
+        <div class="page-desc" id="pageDesc">Ikhtisar status seluruh menu monitoring proyek</div>
+      </div>
+      <button class="refresh-btn" id="refreshBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+        Refresh Data
+      </button>
+    </header>
+    <div class="content" id="content"></div>
+  </main>
+
+</div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* ============================================================
+   KONFIGURASI
+   Isi SPREADSHEET_ID dengan ID Google Sheet kamu, lalu untuk
+   setiap menu isi GID tab sheet-nya (lihat angka gid= di URL
+   saat tab itu dibuka). Sheet harus "Anyone with link: Viewer".
+   ============================================================ */
+const MENUS = {
+  "lle":               { title: "Monitoring LLE",                              gid: "0", sheetName: "LLE", docStyle: true },
+  "tender-drawing":     { title: "Monitoring Tender Drawing",                    gid: "0", sheetName: "Tender Drawing", revisionStyle: true },
+  "forcon-drawing":     { title: "Monitoring Forcon Drawing",                    gid: "0", sheetName: "Forcon Drawing", revisionStyle: true },
+  "shop-drawing":        { title: "Monitoring Shop Drawing",                      gid: "0", sheetName: "Shop Drawing", shopDrawingStyle: true },
+  "material-approval":  { title: "Monitoring Material Approval Submittal",       gid: "0", sheetName: "Material Approval", materialApprovalStyle: true },
+  "method-of-work":     { title: "Monitoring Method of Work",                    gid: "0", sheetName: "Method of Work", methodOfWorkStyle: true },
+  "rfi":                { title: "Monitoring RFI",                              gid: "0", sheetName: "RFI", rfiStyle: true },
+  "site-instruction":   { title: "Monitoring Site Instruction",                  gid: "0", sheetName: "Site Instruction", siStyle: true },
+};
+
+/* Header judul (tanpa logo) untuk tabel bergaya "drawing register"
+   (Tender Drawing & Forcon Drawing). */
+const REV_HEADER = {
+  "tender-drawing": { title: "AMALI, PECATU-BADUNG-BALI MECHANICAL - ELECTRICAL & PLUMBING DRAWING REGISTER", subtitle: "TENDER DRAWING" },
+  "forcon-drawing": { title: "AMALI, PECATU-BADUNG-BALI MECHANICAL - ELECTRICAL & PLUMBING DRAWING REGISTER", subtitle: "FORCON DRAWING" },
+  "shop-drawing": { title: "AMALI, PECATU-BADUNG-BALI MECHANICAL - ELECTRICAL & PLUMBING DRAWING REGISTER", subtitle: "SHOP DRAWING" },
+};
+
+/* Struktur kolom default — dipakai untuk menampilkan tabel kosong (siap diisi)
+   selama spreadsheet belum tersambung atau belum ada data sama sekali.
+   Untuk kolom tabel revisi (tender/forcon drawing), gunakan format
+   "NAMA GRUP | tanggal" — kolom dengan grup sama akan otomatis
+   digabung menjadi satu header (mis. "CONCEPT DRAWING | 07/10/24"). */
+const DEFAULT_HEADERS = {
+  "lle": ["No.","Name","MAR Process including mock up if any","LEAD TIME (Months)","PO","Fabrication Time","On Site Target","STATUS","Vendor Confirmation MOS Date","MOS Actual","Forecast Start Installation from MOS Vendor","Actual Installation","MEP Room","Room MEP Readiness"],
+  "tender-drawing": ["No.","Drawing Title","Drawing No.","Diterima Ke - | 1","Diterima Ke - | 2","Diterima Ke - | 3","Diterima Ke - | 4","Diterima Ke - | 5","Diterima Ke - | 6","Diterima Ke - | 7","Diterima Ke - | 8"],
+  "forcon-drawing": ["No.","Drawing Title","Drawing No.","Diterima Ke - | 1","Diterima Ke - | 2","Diterima Ke - | 3","Diterima Ke - | 4","Diterima Ke - | 5","Diterima Ke - | 6","Diterima Ke - | 7","Diterima Ke - | 8"],
+  "rfi": ["No.","RFI / PI No.","Deskripsi","STR","ARS","MEP","Send Date","Replied","Close","Keterangan (SI-VO / Non VO)"],
+  "site-instruction": ["No","Tgl Terbit","No Site Instruksi","Kode 1.A","Kode 1.B","STR","ARS","MEP","Item Pekerjaan"],
+};
+
+/* Kolom tetap Tabel B "Monitoring RFI / PI" — urutan harus persis sama
+   dengan urutan kolom di sheet "RFI". */
+const RFI_COLUMNS = DEFAULT_HEADERS["rfi"];
+
+/* Konfigurasi kop form "Monitoring RFI / PI (Permintaan Informasi)". */
+const RFI_HEADER = {
+  formNo: "FM/PRJ-1/17",
+  rev: "1",
+  proyek: "AMALI LUXURY RESIDENCE",
+  acknowledgedBy: { label: "Diketahui oleh,", role: "Chief / Mgr Engineering" },
+  preparedBy:     { label: "Disusun oleh,",   role: "Project Manager" },
+};
+
+/* Kolom tetap Tabel B "Monitoring SI (Site Instruction)" — urutan harus persis
+   sama dengan urutan kolom di sheet "Site Instruction". Kolom "Kode 1.A" /
+   "Kode 1.B" dan "STR"/"ARS"/"MEP" diisi tanda (mis. "V") saat relevan. */
+const SITE_INSTRUCTION_COLUMNS = DEFAULT_HEADERS["site-instruction"];
+
+/* Konfigurasi kop form "MONITORING SI (Site Instruction)" — ganti logoUrl
+   setelah file logo di-upload ke folder logo di GitHub, contoh:
+   "https://raw.githubusercontent.com/USERNAME/REPO/main/logo/tata.png" */
+const SITE_INSTRUCTION_HEADER = {
+  formNo: "FM/PRJ-1/49",
+  rev: "0",
+  proyek: "AMALI LUXURY RESIDENCE",
+  mingguKe: "",
+  tgl: "08/12/2026",
+  logo: { url: "", label: "TATA" },
+  keteranganKode: [
+    { code: "1 A", desc: "= SI Kerja Tambah / Kurang (Ada VO)" },
+    { code: "1 B", desc: "= SI hanya Instruksi Teknis / Non Teknis (Tidak Ada VO)" },
+  ],
+  notes: [
+    "1. *)  TABEL A : Dibuat untuk laporan 2 mingguan",
+    "    **) TABEL B : Dibuat untuk monitoring setiap hari",
+    "2. Untuk laporan 2 Mingguan ditampilkan tabel A & B dan ditandatangani PIC yang bertanggung jawab",
+  ],
+  preparedBy:      { label: "Disusun oleh,",   role: "Chief / Mgr Engineering" },
+  acknowledgedBy1: { label: "Diketahui oleh,", role: "PCCM" },
+  acknowledgedBy2: { label: "Diketahui oleh,", role: "Project Manager" },
+};
+
+/* Konfigurasi kop form "Monitoring Shop Drawing" — ganti logoUrl setelah
+   file logo di-upload ke folder logo di GitHub, contoh:
+   "https://raw.githubusercontent.com/USERNAME/REPO/main/logo/tata.png" */
+const SHOP_DRAWING_HEADER = {
+  logos: [
+    { url: "", label: "TATA" },
+    { url: "", label: "TODA" },
+  ],
+  tagline: "Sustainable Collaboration",
+  gambarTypeNote: "GAMBAR : ARSITEKTUR / STRUKTUR / MEP (coret yang tidak perlu)",
+  note: "Hanya untuk keperluan intern",
+  updateDate: "08/12/2026",
+  lembarKe: "Lembar ke 1 dari 10",
+  nama: [
+    { code: "( 1 ) =", value: "PAO / Admin" },
+    { code: "( 2 ) =", value: "Dimas (Engineer)" },
+    { code: "( 3 ) =", value: "Drafter" },
+  ],
+  keteranganStatus: [
+    { code: "D", desc: "= belum kembali dari owner" },
+    { code: "C", desc: "= dikembalikan untuk revisi / reject" },
+    { code: "B", desc: "= approved w/ comment" },
+    { code: "A", desc: "= disetujui / approved" },
+  ],
+};
+
+/* Urutan 23 kolom tetap untuk sheet "Shop Drawing" — isi sheet dengan
+   urutan kolom persis seperti ini (nama header di baris sheet bebas,
+   yang penting urutan datanya sama). */
+const SHOP_DRAWING_COLUMNS = [
+  "No", "Judul Gambar", "Durasi Owner Review Shop Drawing", "No. Transmital To Owner",
+  "No. Shop Drawing", "No. Referensi",
+  "Ukuran Kertas A1", "Ukuran Kertas A2", "Ukuran Kertas A3",
+  "I - Tgl", "I - Status/Tgl", "II - Tgl", "II - Status/Tgl", "III - Tgl", "III - Status/Tgl",
+  "IV - Tgl", "IV - Status/Tgl", "V - Tgl", "V - Status/Tgl",
+  "Status Update - Status", "Status Update - Tanggal", "Note", "Penerima *)",
+];
+
+/* Urutan 21 kolom tetap untuk sheet "Material Approval" — isi sheet dengan
+   urutan kolom persis seperti ini. Pola "I-V Tgl/Status-Tgl" + "Status Update"
+   sama seperti sheet "Shop Drawing". Baris kategori/disiplin (mis. "PLUMBING")
+   ditulis dengan kolom "Nama Produk" terisi dan kolom lain kosong. */
+const MATERIAL_APPROVAL_COLUMNS = [
+  "No Urut", "No PCM", "Nama Produk (Jenis/Merk)", "STR", "ARS", "MEP", "Hasil Produksi Supplier",
+  "I - Tgl", "I - Status/Tgl", "II - Tgl", "II - Status/Tgl", "III - Tgl", "III - Status/Tgl",
+  "IV - Tgl", "IV - Status/Tgl", "V - Tgl", "V - Status/Tgl",
+  "Status Update - Status", "Status Update - Tanggal",
+  "SAMPLE Tanggal", "Catatan",
+];
+
+/* Kop form + info proyek + legenda status untuk "Monitoring Material Approval Submittal".
+   Ganti nilai di sini sesuai proyek berjalan (minggu lalu/minggu ini bisa dihitung manual
+   atau ditinggal kosong bila belum ada data mingguan). */
+const MATERIAL_APPROVAL_HEADER = {
+  formNo: "FM/PRJ-1/05",
+  rev: "1",
+  proyek: "AMALI LUXURY RESIDENCE",
+  startDate: "15/8/25",
+  mingguLalu: "",
+  mingguIni: "",
+  tglMingguLalu: "",
+  tglMingguIni: "08/12/2026",
+  keteranganStatus: [
+    { code: "A", desc: "= disetujui / approved" },
+    { code: "B", desc: "= approved w/ comment" },
+    { code: "C", desc: "= dikembalikan untuk revisi / reject" },
+    { code: "D", desc: "= belum kembali dari owner" },
+  ],
+};
+
+/* Urutan 29 kolom tetap untuk sheet "Method of Work" — isi sheet dengan
+   urutan kolom persis seperti ini. Pola Subkon I/II/III (Submit/Reject Date)
+   + R0-R3 (Rencana/Aktual Kirim, Tanggal Diterima) + Status Update A/B/C/D. */
+const METHOD_OF_WORK_COLUMNS = [
+  "No MOW", "Pekerjaan", "STR", "ARS", "MEP", "START Pelaksanaan",
+  "Subkon I - Submit Date", "Subkon I - Reject Date",
+  "Subkon II - Submit Date", "Subkon II - Reject Date",
+  "Subkon III - Submit Date", "Subkon III - Reject Date",
+  "R0 - Rencana Kirim", "R0 - Aktual Kirim", "R0 - Tanggal Diterima",
+  "R1 - Rencana Kirim", "R1 - Aktual Kirim", "R1 - Tanggal Diterima",
+  "R2 - Rencana Kirim", "R2 - Aktual Kirim", "R2 - Tanggal Diterima",
+  "R3 - Rencana Kirim", "R3 - Aktual Kirim", "R3 - Tanggal Diterima",
+  "Status A", "Status B", "Status C", "Status D", "Remark",
+];
+
+/* Kop form + info proyek + legenda status + tanda tangan untuk
+   "Monitoring Method of Work". */
+const METHOD_OF_WORK_HEADER = {
+  formNo: "FM/PRJ-1/50",
+  rev: "0",
+  proyek: "AMALI LUXURY RESIDENCE",
+  mingguKe: "21",
+  tgl: "30/11/2024",
+  keteranganStatus: [
+    { code: "A", desc: "= Disetujui" },
+    { code: "B", desc: "= Disetujui dengan syarat" },
+    { code: "C", desc: "= Disetujui dengan catatan / revisi dan diajukan kembali" },
+    { code: "D", desc: "= Belum kembali" },
+  ],
+  notes: [
+    "1. *)  TABEL A : Dibuat untuk laporan 2 mingguan",
+    "    **) TABEL B : Dibuat untuk monitoring setiap hari",
+    "2. Untuk laporan 2 Mingguan ditampilkan tabel A & B dan ditandatangani PIC yang bertanggung jawab",
+  ],
+  acknowledgedBy: { label: "Diketahui oleh,", name: "I Gusti Ngurah Paramartha Giri", role: "Project Manager" },
+  reviewedBy:     { label: "Diperiksa oleh,", name: "Ferry Sutanto",                   role: "Chief / Mgr Eng" },
+  preparedBy:     { label: "Disusun oleh,",   name: "Dimas Alfian Wahyudi",            role: "" },
+};
+
+/* Header dokumen ala kop surat untuk menu docStyle (mis. LLE).
+   Ganti logoUrl dengan link raw logo di GitHub kamu, contoh:
+   "https://raw.githubusercontent.com/USERNAME/REPO/main/logo/tata.png" */
+const DOC_HEADER = {
+  logoUrl: "",
+  companyName: "PT. TATAMULIA NUSANTARA INDAH",
+  proyek: "AMALI LUXURY RESIDENCE",
+  lokasi: "PECATU",
+  pekerjaan: "LONG LEAD EQUIPMENT BY TATA",
+  approvedBy:     { label: "Disetujui oleh,",  name: "Ferry Sutanto",                role: "Project Manager" },
+  acknowledgedBy: { label: "Diketahui oleh,",  name: "I Gusti Ngurah Paramartha Giri", role: "Deputy Project Manager MEP" },
+  preparedBy:     { label: "Disusun oleh,",    name: "Dimas Alfian Wahyudi",          role: "MEP Engineer" },
+};
+const DESCRIPTIONS = {
+  "lle": "Daftar dan status Local Legal Entity / long-lead equipment yang dimonitor",
+  "tender-drawing": "Progres gambar tender per disiplin dan status approval",
+  "forcon-drawing": "Progres gambar for construction (forcon) dan status revisi",
+  "shop-drawing": "Progres gambar shop drawing dan status penerimaan per tahap",
+  "material-approval": "Status pengajuan dan approval submittal material",
+  "method-of-work": "Status pengajuan dan approval metode kerja",
+  "rfi": "Daftar Request for Information dan status tindak lanjut",
+  "site-instruction": "Daftar Site Instruction (SI), kode 1A/1B per disiplin, dan ringkasan mingguannya",
+};
+
+const STATUS_WORDS = {
+  ok:   ["approved","approve","done","selesai","completed","complete","ok","closed","clear"],
+  warn: ["review","on review","in progress","proses","submitted","pending","waiting","open","revisi","revise"],
+  bad:  ["reject","rejected","overdue","delay","terlambat","late","hold"],
+};
+
+let cache = {};        // menu -> {header, rows}
+let activeMenu = "summary";
+
+const contentEl = document.getElementById("content");
+const pageTitleEl = document.getElementById("pageTitle");
+const pageDescEl = document.getElementById("pageDesc");
+const lastSyncEl = document.getElementById("lastSync");
+const refreshBtn = document.getElementById("refreshBtn");
+
+document.getElementById("nav").addEventListener("click", (e) => {
+  const btn = e.target.closest(".nav-item");
+  if (!btn) return;
+  setActive(btn.dataset.menu);
+});
+refreshBtn.addEventListener("click", () => loadMenu(activeMenu, true));
+
+function pickRenderer(menu){
+  if (MENUS[menu].docStyle) return renderDocTable;
+  if (MENUS[menu].revisionStyle) return renderRevisionTable;
+  if (MENUS[menu].shopDrawingStyle) return renderShopDrawingTable;
+  if (MENUS[menu].materialApprovalStyle) return renderMaterialApprovalTable;
+  if (MENUS[menu].methodOfWorkStyle) return renderMethodOfWorkTable;
+  if (MENUS[menu].rfiStyle) return renderRfiTable;
+  if (MENUS[menu].siStyle) return renderSiTable;
+  return renderTable;
+}
+
+function setActive(menu){
+  activeMenu = menu;
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.menu === menu));
+  if (menu === "summary"){
+    pageTitleEl.textContent = "Summary";
+    pageDescEl.textContent = "Ikhtisar status seluruh menu monitoring proyek";
+    renderSummary();
+  } else {
+    pageTitleEl.textContent = MENUS[menu].title;
+    pageDescEl.textContent = DESCRIPTIONS[menu] || "";
+    loadMenu(menu);
+  }
+}
+
+function classifyStatus(text){
+  if (!text) return "na";
+  const t = String(text).toLowerCase();
+  for (const s of STATUS_WORDS.bad)  if (t.includes(s)) return "bad";
+  for (const s of STATUS_WORDS.ok)   if (t.includes(s)) return "ok";
+  for (const s of STATUS_WORDS.warn) if (t.includes(s)) return "warn";
+  return "na";
+}
+
+function guessStatusColIndex(header){
+  return header.findIndex(h => /status/i.test(h));
+}
+
+async function fetchMenu(menu){
+  const cfg = MENUS[menu];
+  try{
+    const res = await fetch(`/api/sheet?gid=${encodeURIComponent(cfg.gid)}`);
+    const data = await res.json().catch(() => null);
+    if (res.ok && data && !data.error && data.header && data.header.length){
+      return { ...data, offline: false };
+    }
+    throw new Error((data && data.error) || `HTTP ${res.status}`);
+  }catch(err){
+    // Belum tersambung ke spreadsheet — tetap tampilkan struktur tabel kosong
+    return { header: DEFAULT_HEADERS[menu] || ["No.","Keterangan","Status"], rows: [], offline: true, offlineReason: err.message };
+  }
+}
+
+async function loadMenu(menu, forceRefresh){
+  if (cache[menu] && !forceRefresh){
+    pickRenderer(menu)(menu, cache[menu]);
+    return;
+  }
+  renderLoading();
+  refreshBtn.classList.add("spinning");
+  try{
+    const data = await fetchMenu(menu);
+    cache[menu] = data;
+    lastSyncEl.textContent = "Sinkron " + new Date().toLocaleTimeString('id-ID');
+    if (activeMenu === menu) pickRenderer(menu)(menu, data);
+  }catch(err){
+    if (activeMenu === menu) renderError(err.message);
+  }finally{
+    refreshBtn.classList.remove("spinning");
+  }
+}
+
+function renderLoading(){
+  contentEl.innerHTML = `<div class="state-box"><div class="spinner"></div>Memuat data dari spreadsheet…</div>`;
+}
+
+function renderError(msg){
+  contentEl.innerHTML = `
+    <div class="state-box error">
+      Gagal memuat data.
+      <div class="mono">${escapeHtml(msg)}</div>
+      <div class="mono" style="margin-top:10px;">Cek konfigurasi SPREADSHEET_ID di functions/[[catchall]].js dan pastikan sheet dapat diakses (Anyone with link: Viewer).</div>
+    </div>`;
+}
+
+function renderTable(menu, data){
+  const { header, rows, offline } = data;
+  const statusIdx = guessStatusColIndex(header);
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div class="toolbar">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8992a3" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" placeholder="Cari di tabel ini…">
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="row-count" id="rowCount"></div>
+        <button class="add-btn" id="addBtn">+ Tambah Data</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr>${header.map(h => `<th>${escapeHtml(h)}</th>`).join("")}</tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, header));
+
+  const tbody = document.getElementById("tbody");
+  const rowCountEl = document.getElementById("rowCount");
+
+  function draw(filter){
+    const f = (filter || "").toLowerCase();
+    const filtered = f ? rows.filter(r => r.some(c => String(c).toLowerCase().includes(f))) : rows;
+    if (filtered.length === 0){
+      const msg = rows.length === 0 ? "Belum ada data. Klik \u201cTambah Data\u201d untuk mengisi baris pertama." : "Tidak ada data yang cocok.";
+      tbody.innerHTML = `<tr><td colspan="${header.length}" style="padding:40px;text-align:center;color:#8992a3;">${msg}</td></tr>`;
+    } else {
+      tbody.innerHTML = filtered.map(r => `<tr>${
+        r.map((c, i) => i === statusIdx && c
+          ? `<td>${statusPill(c)}</td>`
+          : `<td>${escapeHtml(c)}</td>`
+        ).join("")
+      }</tr>`).join("");
+    }
+    rowCountEl.textContent = `${filtered.length} dari ${rows.length} baris`;
+  }
+
+  draw("");
+  document.getElementById("searchInput").addEventListener("input", (e) => draw(e.target.value));
+}
+
+function renderDocTable(menu, data){
+  const { header, rows, offline } = data;
+  const statusIdx = guessStatusColIndex(header);
+  const h = DOC_HEADER;
+
+  const logoHtml = h.logoUrl
+    ? `<img class="doc-logo" src="${h.logoUrl}" alt="Logo perusahaan">`
+    : `<div class="doc-logo-placeholder">LOGO</div>`;
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="add-btn" id="addBtn">+ Tambah Data</button>
+    </div>
+    <div class="doc-sheet">
+      <div class="doc-header">
+        ${logoHtml}
+        <div>
+          <div class="doc-company">${escapeHtml(h.companyName)}</div>
+          <div class="doc-meta">
+            <span class="doc-meta-label">PROYEK</span><span class="doc-meta-colon">:</span><span class="doc-meta-value">${escapeHtml(h.proyek)}</span>
+            <span class="doc-meta-label">LOKASI</span><span class="doc-meta-colon">:</span><span class="doc-meta-value">${escapeHtml(h.lokasi)}</span>
+            <span class="doc-meta-label">PEKERJAAN</span><span class="doc-meta-colon">:</span><span class="doc-meta-value">${escapeHtml(h.pekerjaan)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="doc-table-scroll">
+        <table class="doc-table">
+          <thead><tr>${header.map(hd => `<th>${escapeHtml(hd)}</th>`).join("")}</tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(r => docRowHtml(r, statusIdx, header.length)).join("") : `<tr><td colspan="${header.length}" style="padding:30px;text-align:center;color:#8992a3;">Belum ada data. Klik &ldquo;Tambah Data&rdquo; untuk mengisi baris pertama.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+      <div class="doc-footer">
+        ${docSigHtml(h.approvedBy)}
+        ${docSigHtml(h.acknowledgedBy)}
+        ${docSigHtml(h.preparedBy)}
+      </div>
+    </div>
+  `;
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, header));
+}
+
+function isDocGroupRow(row){
+  // Baris judul section: No. kosong, Name terisi, kolom lain semuanya kosong (mis. "EQUIPMENT MEP")
+  const rest = row.slice(2);
+  return !String(row[0] ?? "").trim() && String(row[1] ?? "").trim() && rest.every(c => !String(c ?? "").trim());
+}
+
+function docRowHtml(row, statusIdx, colCount){
+  if (isDocGroupRow(row)){
+    return `<tr class="doc-group-row"><td colspan="${colCount}">${escapeHtml(row[1])}</td></tr>`;
+  }
+  const isHold = statusIdx >= 0 && /hold/i.test(String(row[statusIdx] ?? ""));
+  const cells = row.map((c, i) => `<td class="${i === 0 ? "center" : ""}">${escapeHtml(c)}</td>`).join("");
+  return `<tr class="${isHold ? "doc-hold-row" : ""}">${cells}</tr>`;
+}
+
+function docSigHtml(sig){
+  if (!sig) return "<div></div>";
+  return `<div class="doc-sig">
+    <div class="doc-sig-label">${escapeHtml(sig.label)}</div>
+    <div class="doc-sig-name">${escapeHtml(sig.name)}</div>
+    <div class="doc-sig-role">${escapeHtml(sig.role)}</div>
+  </div>`;
+}
+
+/* Parse header seperti ["No.","Judul","CONCEPT DRAWING | 07/10/24","CONCEPT DRAWING | 24/10/24","R1 | 21/12/24"]
+   menjadi kolom tetap (No, Judul, dst) + grup kolom tanggal (CONCEPT DRAWING, R1, ...) */
+function parseRevisionHeader(header){
+  const fixed = [];      // { idx, label }
+  const groups = [];     // { label, cols: [{ idx, label }] }
+  header.forEach((h, idx) => {
+    const parts = String(h).split("|").map(s => s.trim());
+    if (parts.length < 2){
+      fixed.push({ idx, label: h });
+    } else {
+      const [groupLabel, subLabel] = parts;
+      let g = groups[groups.length - 1];
+      if (!g || g.label !== groupLabel){
+        g = { label: groupLabel, cols: [] };
+        groups.push(g);
+      }
+      g.cols.push({ idx, label: subLabel });
+    }
+  });
+  return { fixed, groups };
+}
+
+function renderRevisionTable(menu, data){
+  const { header, rows, offline } = data;
+  const { fixed, groups } = parseRevisionHeader(header);
+  const revh = REV_HEADER[menu] || { title: MENUS[menu].title, subtitle: "" };
+
+  const row1 = fixed.map(f => `<th rowspan="2">${escapeHtml(f.label)}</th>`).join("") +
+    groups.map(g => `<th class="group-th" colspan="${g.cols.length}">${escapeHtml(g.label)}</th>`).join("");
+  const row2 = groups.map(g => g.cols.map(c => `<th>${escapeHtml(c.label)}</th>`).join("")).join("");
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="add-btn" id="addBtn">+ Tambah Data</button>
+    </div>
+    <div class="rev-sheet">
+      <div class="rev-header">
+        <div class="rev-title">${escapeHtml(revh.title)}</div>
+        ${revh.subtitle ? `<div class="rev-subtitle">${escapeHtml(revh.subtitle)}</div>` : ""}
+      </div>
+      <div class="rev-table-scroll">
+        <table class="rev-table">
+          <thead>
+            <tr>${row1}</tr>
+            <tr>${row2}</tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(r => revRowHtml(r, fixed, groups)).join("") : `<tr><td colspan="${header.length}" style="padding:30px;text-align:center;color:#8992a3;">Belum ada data. Klik &ldquo;Tambah Data&rdquo; untuk mengisi baris pertama.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, header));
+}
+
+function revRowHtml(row, fixed, groups){
+  const fixedCells = fixed.map((f, i) => `<td class="${i === 0 ? "no-col" : ""}">${escapeHtml(row[f.idx])}</td>`).join("");
+  const groupCells = groups.map(g => g.cols.map(c => `<td class="rev-date">${escapeHtml(row[c.idx])}</td>`).join("")).join("");
+  return `<tr>${fixedCells}${groupCells}</tr>`;
+}
+
+function renderShopDrawingTable(menu, data){
+  const rows = data.rows || [];
+  const offline = data.offline;
+  const H = SHOP_DRAWING_HEADER;
+  const COLS = SHOP_DRAWING_COLUMNS.length; // 23
+
+  const logosHtml = H.logos.map(l => l.url
+    ? `<img class="sd-logo" src="${l.url}" alt="${escapeHtml(l.label)}">`
+    : `<div class="sd-logo-placeholder">${escapeHtml(l.label)}</div>`
+  ).join("");
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="add-btn" id="addBtn">+ Tambah Data</button>
+    </div>
+    <div class="sd-sheet">
+      <div class="sd-header">
+        <div>
+          <div class="sd-logos">${logosHtml}<span class="sd-tagline">${escapeHtml(H.tagline)}</span></div>
+          <div class="sd-notes">
+            <div><b>${escapeHtml(H.gambarTypeNote)}</b></div>
+            <div>NOTE&nbsp;&nbsp;: ${escapeHtml(H.note)}</div>
+            <div>Update&nbsp;: ${escapeHtml(H.updateDate)}</div>
+          </div>
+        </div>
+        <div class="sd-right">
+          <div class="sd-lembar">${escapeHtml(H.lembarKe)}</div>
+          <div><b>NAMA :</b></div>
+          ${H.nama.map(n => `<div class="sd-nama-row"><span class="code">${escapeHtml(n.code)}</span><span>${escapeHtml(n.value)}</span></div>`).join("")}
+          <div class="sd-status-title">KETERANGAN STATUS :</div>
+          ${H.keteranganStatus.map(s => `<div class="sd-status-row"><span class="code">${escapeHtml(s.code)}</span><span>${escapeHtml(s.desc)}</span></div>`).join("")}
+        </div>
+      </div>
+      <div class="sd-table-scroll">
+        <table class="sd-table">
+          <thead>
+            <tr>
+              <th rowspan="3">No</th>
+              <th rowspan="3">Judul Gambar</th>
+              <th rowspan="3">Durasi Owner Review<br>Shop Drawing</th>
+              <th rowspan="3">No. Transmital<br>To Owner</th>
+              <th rowspan="3">No.<br>Shop Drawing</th>
+              <th rowspan="3">No.<br>Referensi</th>
+              <th colspan="3">Ukuran Kertas</th>
+              <th colspan="10">PENGAJUAN GAMBAR &amp; STATUS TATA TO OWNER</th>
+              <th colspan="2">STATUS UPDATE</th>
+              <th rowspan="3">NOTE</th>
+              <th rowspan="3">Penerima *)</th>
+            </tr>
+            <tr>
+              <th rowspan="2">A1</th><th rowspan="2">A2</th><th rowspan="2">A3</th>
+              <th colspan="2">I</th><th colspan="2">II</th><th colspan="2">III</th><th colspan="2">IV</th><th colspan="2">V</th>
+              <th class="italic" colspan="2">( A; B; C; D )</th>
+            </tr>
+            <tr>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Status</th><th>Tanggal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(r => shopDrawingRowHtml(r, COLS)).join("") : `<tr><td colspan="${COLS}" style="padding:30px;color:#8992a3;">Belum ada data. Klik &ldquo;Tambah Data&rdquo; untuk mengisi baris pertama.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, SHOP_DRAWING_COLUMNS));
+}
+
+function shopDrawingRowHtml(row, colCount){
+  if (isDocGroupRow(row)){
+    return `<tr class="sd-group-row"><td colspan="${colCount}">${escapeHtml(row[1])}</td></tr>`;
+  }
+  const cells = row.map((c, i) => `<td class="${i === 1 ? "left" : ""}">${escapeHtml(c)}</td>`).join("");
+  return `<tr>${cells}</tr>`;
+}
+
+/* Baris kategori/disiplin (mis. "PLUMBING", "ELEKTRIKAL") ditulis di sheet
+   dengan hanya kolom "Nama Produk" (idx 2) terisi, kolom lain kosong. */
+function isMaterialGroupRow(row){
+  const rest = [row[0], row[1], ...row.slice(3)];
+  return String(row[2] ?? "").trim() && rest.every(c => !String(c ?? "").trim());
+}
+
+/* Hitung ringkasan Tabel A dari data Tabel B saat ini: jumlah item per
+   disiplin (STR/ARS/MEP) dan status Submit / Disetujui / Reject / Outstanding.
+   Status diambil dari kolom "Status Update - Status" (isi: A/B/C/D). */
+function computeMaterialSummary(rows){
+  const disciplines = ["STR", "ARS", "MEP"];
+  const idx = { STR: 3, ARS: 4, MEP: 5 };
+  const STATUS_COL = 17; // Status Update - Status
+  const summary = {
+    STR: { submit: 0, approved: 0, reject: 0, outstanding: 0 },
+    ARS: { submit: 0, approved: 0, reject: 0, outstanding: 0 },
+    MEP: { submit: 0, approved: 0, reject: 0, outstanding: 0 },
+  };
+  rows.forEach(row => {
+    if (isMaterialGroupRow(row)) return;
+    disciplines.forEach(d => {
+      if (!String(row[idx[d]] ?? "").trim()) return;
+      summary[d].submit++;
+      const status = String(row[STATUS_COL] ?? "").trim().toUpperCase();
+      if (status === "A" || status === "B") summary[d].approved++;
+      else if (status === "C") summary[d].reject++;
+      else summary[d].outstanding++;
+    });
+  });
+  return summary;
+}
+
+function renderMaterialApprovalTable(menu, data){
+  const rows = data.rows || [];
+  const offline = data.offline;
+  const H = MATERIAL_APPROVAL_HEADER;
+  const COLS = MATERIAL_APPROVAL_COLUMNS.length; // 31
+  const summary = computeMaterialSummary(rows);
+  const totalOf = key => summary.STR[key] + summary.ARS[key] + summary.MEP[key];
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="add-btn" id="addBtn">+ Tambah Data</button>
+    </div>
+    <div class="ma-sheet">
+      <div class="ma-header">
+        <div>
+          <div class="ma-title">MONITORING MAS (Material Approval Submittal)</div>
+          <div class="ma-sub">${escapeHtml(H.formNo)} &middot; Rev : ${escapeHtml(H.rev)}</div>
+        </div>
+        <div class="ma-info">
+          <div><b>PROYEK</b> : ${escapeHtml(H.proyek)}</div>
+          <div><b>START</b> : ${escapeHtml(H.startDate)} &nbsp; <b>TGL</b> : ${escapeHtml(H.tglMingguIni)}</div>
+          ${H.mingguIni ? `<div><b>MINGGU LALU</b> : ${escapeHtml(H.mingguLalu)} &nbsp; <b>MINGGU INI</b> : ${escapeHtml(H.mingguIni)}</div>` : ""}
+        </div>
+      </div>
+
+      <div class="ma-summary-wrap">
+        <div class="ma-summary-title">Tabel A — Ringkasan Status Submittal</div>
+        <table class="ma-summary">
+          <thead>
+            <tr>
+              <th>Submittal</th><th>Struktur</th><th>Arsitektur</th><th>MEP</th><th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="label">Submit</td><td>${summary.STR.submit}</td><td>${summary.ARS.submit}</td><td>${summary.MEP.submit}</td><td><b>${totalOf("submit")}</b></td></tr>
+            <tr><td class="label">Disetujui</td><td>${summary.STR.approved}</td><td>${summary.ARS.approved}</td><td>${summary.MEP.approved}</td><td><b>${totalOf("approved")}</b></td></tr>
+            <tr><td class="label">Reject</td><td>${summary.STR.reject}</td><td>${summary.ARS.reject}</td><td>${summary.MEP.reject}</td><td><b>${totalOf("reject")}</b></td></tr>
+            <tr><td class="label">Outstanding</td><td>${summary.STR.outstanding}</td><td>${summary.ARS.outstanding}</td><td>${summary.MEP.outstanding}</td><td><b>${totalOf("outstanding")}</b></td></tr>
+          </tbody>
+        </table>
+        <div class="ma-summary-title">Tabel B — Detail Submittal</div>
+      </div>
+
+      <div class="ma-table-scroll">
+        <table class="ma-table">
+          <thead>
+            <tr>
+              <th rowspan="3">No<br>Urut</th>
+              <th rowspan="3">No PCM</th>
+              <th rowspan="3">Nama Produk<br>(Jenis/Merk)</th>
+              <th colspan="3">Lingkup</th>
+              <th rowspan="3">Hasil Produksi<br>Supplier</th>
+              <th colspan="10">PENGAJUAN MATERIAL &amp; STATUS TATA TO OWNER</th>
+              <th colspan="2">STATUS UPDATE</th>
+              <th rowspan="3">SAMPLE<br>Tanggal</th>
+              <th rowspan="3">Catatan</th>
+            </tr>
+            <tr>
+              <th rowspan="2">STR</th><th rowspan="2">ARS</th><th rowspan="2">MEP</th>
+              <th colspan="2">I</th><th colspan="2">II</th><th colspan="2">III</th><th colspan="2">IV</th><th colspan="2">V</th>
+              <th class="italic" colspan="2">( A; B; C; D )</th>
+            </tr>
+            <tr>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Tgl</th><th>Status/Tgl</th>
+              <th>Status</th><th>Tanggal</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(r => materialApprovalRowHtml(r, COLS)).join("") : `<tr><td colspan="${COLS}" style="padding:30px;color:#8992a3;">Belum ada data. Klik &ldquo;Tambah Data&rdquo; untuk mengisi baris pertama.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ma-legend">
+        ${H.keteranganStatus.map(s => `<span><b>${escapeHtml(s.code)}</b>${escapeHtml(s.desc)}</span>`).join("")}
+      </div>
+    </div>
+  `;
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, MATERIAL_APPROVAL_COLUMNS));
+}
+
+function materialApprovalRowHtml(row, colCount){
+  if (isMaterialGroupRow(row)){
+    return `<tr class="ma-group-row"><td colspan="${colCount}">${escapeHtml(row[2])}</td></tr>`;
+  }
+  const cells = row.map((c, i) => {
+    const isLeft = i === 1 || i === 2 || i === colCount - 1; // No PCM, Nama Produk, Catatan
+    return `<td class="${isLeft ? "left" : ""}">${escapeHtml(c)}</td>`;
+  }).join("");
+  return `<tr>${cells}</tr>`;
+}
+
+/* Baris "highlight" khusus (mis. UNLOADING GENSET & TRAFO) — hanya kolom
+   Pekerjaan dan START Pelaksanaan terisi, kolom lain kosong. Ditampilkan
+   dengan latar abu-abu seperti pada form asli. */
+function isMowHighlightRow(row){
+  const rest = [row[0], row[2], row[3], row[4], ...row.slice(6)];
+  return String(row[1] ?? "").trim() && String(row[5] ?? "").trim() && rest.every(c => !String(c ?? "").trim());
+}
+
+/* Hitung ringkasan Tabel A dari data Tabel B saat ini: jumlah item per
+   disiplin (STR/ARS/MEP) untuk Submit / Replied / Outstanding.
+   Replied = Status Update berisi A/B/C, Outstanding = D atau kosong. */
+function computeMowSummary(rows){
+  const disciplines = ["STR", "ARS", "MEP"];
+  const idx = { STR: 2, ARS: 3, MEP: 4 };
+  const STATUS_COLS = { A: 24, B: 25, C: 26, D: 27 };
+  const summary = {
+    STR: { submit: 0, replied: 0, outstanding: 0 },
+    ARS: { submit: 0, replied: 0, outstanding: 0 },
+    MEP: { submit: 0, replied: 0, outstanding: 0 },
+  };
+  rows.forEach(row => {
+    if (isMowHighlightRow(row)) return;
+    disciplines.forEach(d => {
+      if (!String(row[idx[d]] ?? "").trim()) return;
+      summary[d].submit++;
+      const replied = ["A", "B", "C"].some(k => String(row[STATUS_COLS[k]] ?? "").trim());
+      if (replied) summary[d].replied++;
+      else summary[d].outstanding++;
+    });
+  });
+  return summary;
+}
+
+function renderMethodOfWorkTable(menu, data){
+  const rows = data.rows || [];
+  const offline = data.offline;
+  const H = METHOD_OF_WORK_HEADER;
+  const COLS = METHOD_OF_WORK_COLUMNS.length; // 29
+  const summary = computeMowSummary(rows);
+  const totalOf = key => summary.STR[key] + summary.ARS[key] + summary.MEP[key];
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="add-btn" id="addBtn">+ Tambah Data</button>
+    </div>
+    <div class="ma-sheet">
+      <div class="ma-header">
+        <div>
+          <div class="ma-title">MONITORING METODE KERJA (METHODE OF WORKS / MOW)</div>
+          <div class="ma-sub">${escapeHtml(H.formNo)} &middot; Rev : ${escapeHtml(H.rev)}</div>
+        </div>
+        <div class="ma-info">
+          <div><b>PROYEK</b> : ${escapeHtml(H.proyek)}</div>
+          <div><b>MINGGU KE</b> : ${escapeHtml(H.mingguKe)} &nbsp; <b>TGL</b> : ${escapeHtml(H.tgl)}</div>
+        </div>
+      </div>
+
+      <div class="ma-summary-wrap">
+        <div class="ma-summary-title">Tabel A — Ringkasan Status Metode Kerja</div>
+        <table class="ma-summary">
+          <thead>
+            <tr>
+              <th>Submittal</th><th>Struktur</th><th>Arsitektur</th><th>MEP</th><th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="label">Submit</td><td>${summary.STR.submit}</td><td>${summary.ARS.submit}</td><td>${summary.MEP.submit}</td><td><b>${totalOf("submit")}</b></td></tr>
+            <tr><td class="label">Replied</td><td>${summary.STR.replied}</td><td>${summary.ARS.replied}</td><td>${summary.MEP.replied}</td><td><b>${totalOf("replied")}</b></td></tr>
+            <tr><td class="label">Outstanding</td><td>${summary.STR.outstanding}</td><td>${summary.ARS.outstanding}</td><td>${summary.MEP.outstanding}</td><td><b>${totalOf("outstanding")}</b></td></tr>
+          </tbody>
+        </table>
+        <div class="ma-summary-title">Tabel B — Detail Metode Kerja</div>
+      </div>
+
+      <div class="ma-table-scroll">
+        <table class="ma-table">
+          <thead>
+            <tr>
+              <th rowspan="3">No<br>MOW</th>
+              <th rowspan="3">Pekerjaan</th>
+              <th colspan="3">Lingkup</th>
+              <th rowspan="3">START<br>Pelaksanaan</th>
+              <th colspan="2">SUBKON to TATA</th>
+              <th colspan="2">SUBKON to TATA</th>
+              <th colspan="2">SUBKON to TATA</th>
+              <th colspan="3">R0</th>
+              <th colspan="3">R1</th>
+              <th colspan="3">R2</th>
+              <th colspan="3">R3</th>
+              <th colspan="4">STATUS UPDATE</th>
+              <th rowspan="3">Remark</th>
+            </tr>
+            <tr>
+              <th rowspan="2">STR</th><th rowspan="2">ARS</th><th rowspan="2">MEP</th>
+              <th>I</th><th>&nbsp;</th>
+              <th>II</th><th>&nbsp;</th>
+              <th>III</th><th>&nbsp;</th>
+              <th rowspan="2">Rencana<br>Kirim</th><th rowspan="2">Aktual<br>Kirim</th><th rowspan="2">Tanggal<br>Diterima</th>
+              <th rowspan="2">Rencana<br>Kirim</th><th rowspan="2">Aktual<br>Kirim</th><th rowspan="2">Tanggal<br>Diterima</th>
+              <th rowspan="2">Rencana<br>Kirim</th><th rowspan="2">Aktual<br>Kirim</th><th rowspan="2">Tanggal<br>Diterima</th>
+              <th rowspan="2">Rencana<br>Kirim</th><th rowspan="2">Aktual<br>Kirim</th><th rowspan="2">Tanggal<br>Diterima</th>
+              <th class="italic" colspan="4">( A; B; C; D )</th>
+            </tr>
+            <tr>
+              <th>Submit Date</th><th>Reject Date</th>
+              <th>Submit Date</th><th>Reject Date</th>
+              <th>Submit Date</th><th>Reject Date</th>
+              <th>A</th><th>B</th><th>C</th><th>D</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(r => methodOfWorkRowHtml(r, COLS)).join("") : `<tr><td colspan="${COLS}" style="padding:30px;color:#8992a3;">Belum ada data. Klik &ldquo;Tambah Data&rdquo; untuk mengisi baris pertama.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ma-legend stacked">
+        <div><b>Catatan :</b></div>
+        ${H.keteranganStatus.map(s => `<span>&nbsp;&nbsp;<b>${escapeHtml(s.code)}</b>${escapeHtml(s.desc)}</span>`).join("")}
+      </div>
+
+      <div class="ma-notes">
+        <div><b>Note :</b></div>
+        ${H.notes.map(n => `<div>${escapeHtml(n)}</div>`).join("")}
+      </div>
+
+      <div class="doc-footer">
+        ${docSigHtml(H.acknowledgedBy)}
+        ${docSigHtml(H.reviewedBy)}
+        ${docSigHtml(H.preparedBy)}
+      </div>
+    </div>
+  `;
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, METHOD_OF_WORK_COLUMNS));
+}
+
+function methodOfWorkRowHtml(row, colCount){
+  if (isMowHighlightRow(row)){
+    const cells = row.map((c, i) => `<td class="${i === 1 ? "left" : ""}">${escapeHtml(c)}</td>`).join("");
+    return `<tr class="ma-highlight-row">${cells}</tr>`;
+  }
+  const statusIdxs = [24, 25, 26, 27]; // A, B, C, D
+  const cells = row.map((c, i) => {
+    if (statusIdxs.includes(i)){
+      const v = String(c ?? "").trim();
+      return `<td class="${v ? "ma-check" : ""}">${v ? "&#10003;" : ""}</td>`;
+    }
+    const isLeft = i === 1 || i === colCount - 1; // Pekerjaan, Remark
+    return `<td class="${isLeft ? "left" : ""}">${escapeHtml(c)}</td>`;
+  }).join("");
+  return `<tr>${cells}</tr>`;
+}
+
+/* ---- Monitoring RFI / PI ---- */
+
+let rfiCutoff = (() => {
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().slice(0, 10);
+})();
+
+function parseRfiDate(v){
+  const s = String(v ?? "").trim();
+  if (!s) return null;
+  let d = new Date(s);
+  if (!isNaN(d)) return d;
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m){
+    let [, dd, mm, yy] = m;
+    if (yy.length === 2) yy = "20" + yy;
+    d = new Date(`${yy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+
+/* Hitung ringkasan Tabel A dari data Tabel B: jumlah Submit / Replied /
+   Closed / Outstanding per disiplin (STR/ARS/MEP), dipecah "s/d Minggu
+   Lalu" (tanggal Send Date <= cutoff) dan "Minggu Ini" (sisanya). */
+function computeRfiSummary(rows, cutoffStr){
+  const disciplines = ["STR", "ARS", "MEP"];
+  const idx = { STR: 3, ARS: 4, MEP: 5 };
+  const cutoff = cutoffStr ? new Date(cutoffStr) : null;
+  const summary = {};
+  disciplines.forEach(d => { summary[d] = { submitLW: 0, submitTot: 0, repliedLW: 0, repliedTot: 0, closedLW: 0, closedTot: 0 }; });
+
+  rows.forEach(row => {
+    disciplines.forEach(d => {
+      if (!String(row[idx[d]] ?? "").trim()) return;
+      const s = summary[d];
+      s.submitTot++;
+      const sendDate = parseRfiDate(row[6]);
+      if (cutoff && sendDate && sendDate <= cutoff) s.submitLW++;
+
+      if (String(row[7] ?? "").trim()){
+        s.repliedTot++;
+        const repliedDate = parseRfiDate(row[7]);
+        if (cutoff && repliedDate && repliedDate <= cutoff) s.repliedLW++;
+      }
+      if (String(row[8] ?? "").trim()){
+        s.closedTot++;
+        const closedDate = parseRfiDate(row[8]);
+        if (cutoff && closedDate && closedDate <= cutoff) s.closedLW++;
+      }
+    });
+  });
+
+  disciplines.forEach(d => {
+    const s = summary[d];
+    s.submitThis = s.submitTot - s.submitLW;
+    s.repliedThis = s.repliedTot - s.repliedLW;
+    s.closedThis = s.closedTot - s.closedLW;
+    s.outstandingLW = s.submitLW - s.closedLW;
+    s.outstandingTot = s.submitTot - s.closedTot;
+    s.outstandingThis = s.outstandingTot - s.outstandingLW;
+  });
+  return summary;
+}
+
+function blankIfZero(n){
+  return n ? String(n) : "";
+}
+
+function renderRfiTable(menu, data){
+  const rows = data.rows || [];
+  const offline = data.offline;
+  const H = RFI_HEADER;
+  const COLS = RFI_COLUMNS.length; // 10
+  const summary = computeRfiSummary(rows, rfiCutoff);
+  const disc = ["STR", "ARS", "MEP"];
+  const totalOf = key => disc.reduce((sum, d) => sum + summary[d][key], 0);
+  const today = new Date().toLocaleDateString('id-ID');
+
+  const summaryRow = (label, keyLW, keyThis, keyTot) => `
+    <tr>
+      <td class="label">${label}</td>
+      ${disc.map(d => `<td>${blankIfZero(summary[d][keyLW])}</td><td>${blankIfZero(summary[d][keyThis])}</td>`).join("")}
+      <td><b>${blankIfZero(totalOf(keyLW))}</b></td><td><b>${blankIfZero(totalOf(keyThis))}</b></td>
+    </tr>`;
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <label style="font-size:12px;color:#4a5468;display:flex;align-items:center;gap:6px;">
+        Cutoff "s/d Minggu Lalu"
+        <input type="date" id="rfiCutoffInput" value="${rfiCutoff}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;border:1px solid #d7dbe3;border-radius:6px;padding:5px 8px;">
+      </label>
+      <button class="add-btn" id="addBtn">+ Tambah Data</button>
+    </div>
+    <div class="ma-sheet">
+      <div class="ma-header">
+        <div>
+          <div class="ma-title">MONITORING RFI / PI (Permintaan Informasi)</div>
+          <div class="ma-sub">${escapeHtml(H.formNo)} &middot; Rev : ${escapeHtml(H.rev)}</div>
+        </div>
+        <div class="ma-info">
+          <div><b>PROYEK</b> : ${escapeHtml(H.proyek)}</div>
+          <div><b>MINGGU LALU</b> : ${escapeHtml(rfiCutoff)} &nbsp; <b>TGL</b> : ${escapeHtml(today)}</div>
+        </div>
+      </div>
+
+      <div class="ma-summary-wrap">
+        <div class="ma-summary-title">Tabel A — Ringkasan RFI / PI</div>
+        <table class="ma-summary">
+          <thead>
+            <tr>
+              <th rowspan="2">Submital</th>
+              <th colspan="2">Struktur</th><th colspan="2">Arsitektur</th><th colspan="2">MEP</th><th colspan="2">Total</th>
+            </tr>
+            <tr>
+              <th>s/d Minggu Lalu</th><th>Minggu Ini</th>
+              <th>s/d Minggu Lalu</th><th>Minggu Ini</th>
+              <th>s/d Minggu Lalu</th><th>Minggu Ini</th>
+              <th>s/d Minggu Lalu</th><th>Minggu Ini</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${summaryRow("Submit", "submitLW", "submitThis", "submitTot")}
+            ${summaryRow("Replied", "repliedLW", "repliedThis", "repliedTot")}
+            ${summaryRow("Closed", "closedLW", "closedThis", "closedTot")}
+            ${summaryRow("Outstanding", "outstandingLW", "outstandingThis", "outstandingTot")}
+          </tbody>
+        </table>
+        <div class="ma-summary-title">Tabel B — Detail RFI / PI</div>
+      </div>
+
+      <div class="ma-table-scroll">
+        <table class="ma-table">
+          <thead>
+            <tr>
+              <th rowspan="2">No</th>
+              <th rowspan="2">RFI / PI No</th>
+              <th rowspan="2">Deskripsi</th>
+              <th rowspan="2">STR</th>
+              <th rowspan="2">ARS</th>
+              <th rowspan="2">MEP</th>
+              <th rowspan="2">Send Date</th>
+              <th colspan="2">Status Date</th>
+              <th rowspan="2">Keterangan<br>(SI-VO / Non VO)</th>
+            </tr>
+            <tr>
+              <th>Replied</th><th>Close</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(r => rfiRowHtml(r, COLS)).join("") : `<tr><td colspan="${COLS}" style="padding:30px;color:#8992a3;">Belum ada data. Klik &ldquo;Tambah Data&rdquo; untuk mengisi baris pertama.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="rfi-sign">
+        <div class="rfi-sign-block">
+          <div>${escapeHtml(H.acknowledgedBy.label)}</div>
+          <div class="rfi-sign-space"></div>
+          <div class="rfi-sign-role">${escapeHtml(H.acknowledgedBy.role)}</div>
+        </div>
+        <div class="rfi-sign-block">
+          <div>${escapeHtml(H.preparedBy.label)}</div>
+          <div class="rfi-sign-space"></div>
+          <div class="rfi-sign-role">${escapeHtml(H.preparedBy.role)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, RFI_COLUMNS));
+  document.getElementById("rfiCutoffInput").addEventListener("change", (e) => {
+    rfiCutoff = e.target.value || rfiCutoff;
+    renderRfiTable(menu, data);
+  });
+}
+
+function rfiRowHtml(row, colCount){
+  const cells = row.map((c, i) => {
+    const isLeft = i === 1 || i === 2 || i === colCount - 1; // RFI/PI No, Deskripsi, Keterangan
+    return `<td class="${isLeft ? "left" : ""}">${escapeHtml(c)}</td>`;
+  }).join("");
+  return `<tr>${cells}</tr>`;
+}
+
+function statusPill(text){
+  const cls = classifyStatus(text);
+  return `<span class="status-pill ${cls}"><span class="dot ${cls}"></span>${escapeHtml(text)}</span>`;
+}
+
+/* ---- Monitoring SI (Site Instruction) ---- */
+
+let siCutoff = (() => {
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().slice(0, 10);
+})();
+
+/* Hitung ringkasan Tabel A dari data Tabel B: jumlah item Kode 1A / Kode 1B
+   per disiplin (STR/ARS/MEP), dipecah "s/d Minggu Lalu" (Tgl Terbit <= cutoff)
+   dan "Minggu Ini" (sisanya). VO mengikuti jumlah Kode 1A (1A = SI Kerja
+   Tambah/Kurang, Ada VO — lihat Keterangan). Kumulatif = total berjalan
+   (1A + 1B) sampai dengan baris tersebut. */
+function computeSiSummary(rows, cutoffStr){
+  const disciplines = ["STR", "ARS", "MEP"];
+  const idxDisc = { STR: 5, ARS: 6, MEP: 7 };
+  const idxKode1A = 3, idxKode1B = 4, idxTgl = 1;
+  const cutoff = cutoffStr ? new Date(cutoffStr) : null;
+
+  const kode = { kode1A: {}, kode1B: {} };
+  disciplines.forEach(d => { kode.kode1A[d] = { lw: 0, tot: 0 }; kode.kode1B[d] = { lw: 0, tot: 0 }; });
+
+  rows.forEach(row => {
+    const tglDate = parseRfiDate(row[idxTgl]);
+    const isLW = !!(cutoff && tglDate && tglDate <= cutoff);
+    const has1A = !!String(row[idxKode1A] ?? "").trim();
+    const has1B = !!String(row[idxKode1B] ?? "").trim();
+    disciplines.forEach(d => {
+      if (!String(row[idxDisc[d]] ?? "").trim()) return;
+      if (has1A){ kode.kode1A[d].tot++; if (isLW) kode.kode1A[d].lw++; }
+      if (has1B){ kode.kode1B[d].tot++; if (isLW) kode.kode1B[d].lw++; }
+    });
+  });
+
+  disciplines.forEach(d => {
+    kode.kode1A[d].this = kode.kode1A[d].tot - kode.kode1A[d].lw;
+    kode.kode1B[d].this = kode.kode1B[d].tot - kode.kode1B[d].lw;
+  });
+
+  const totalOf = (k, key) => disciplines.reduce((s, d) => s + kode[k][d][key], 0);
+  const total1ALW = totalOf("kode1A", "lw"), total1ATot = totalOf("kode1A", "tot"), total1AThis = total1ATot - total1ALW;
+  const total1BLW = totalOf("kode1B", "lw"), total1BTot = totalOf("kode1B", "tot"), total1BThis = total1BTot - total1BLW;
+  const voLW = total1ALW, voThis = total1AThis, voTot = total1ATot;
+  const kumulatifLW = total1ALW + total1BLW;
+  const kumulatifThis = kumulatifLW + total1AThis + total1BThis;
+
+  return { kode, total1ALW, total1AThis, total1BLW, total1BThis, voLW, voThis, voTot, kumulatifLW, kumulatifThis };
+}
+
+function renderSiTable(menu, data){
+  const rows = data.rows || [];
+  const offline = data.offline;
+  const H = SITE_INSTRUCTION_HEADER;
+  const COLS = SITE_INSTRUCTION_COLUMNS.length; // 9
+  const S = computeSiSummary(rows, siCutoff);
+  const disc = ["STR", "ARS", "MEP"];
+  const today = new Date().toLocaleDateString('id-ID');
+
+  const logoHtml = H.logo.url
+    ? `<img class="sd-logo" src="${H.logo.url}" alt="${escapeHtml(H.logo.label)}">`
+    : `<div class="sd-logo-placeholder">${escapeHtml(H.logo.label)}</div>`;
+
+  contentEl.innerHTML = `
+    ${offline ? offlineBannerHtml() : ""}
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <label style="font-size:12px;color:#4a5468;display:flex;align-items:center;gap:6px;">
+        Cutoff "s/d Minggu Lalu"
+        <input type="date" id="siCutoffInput" value="${siCutoff}" style="font-family:'IBM Plex Mono',monospace;font-size:12px;border:1px solid #d7dbe3;border-radius:6px;padding:5px 8px;">
+      </label>
+      <button class="add-btn" id="addBtn">+ Tambah Data</button>
+    </div>
+    <div class="ma-sheet">
+      <div class="ma-header">
+        <div>
+          <div style="margin-bottom:6px;">${logoHtml}</div>
+          <div class="ma-title">MONITORING SI (Site Instruction)</div>
+          <div class="ma-sub">${escapeHtml(H.formNo)} &middot; Rev : ${escapeHtml(H.rev)}</div>
+        </div>
+        <div class="ma-info">
+          <div><b>PROYEK</b> : ${escapeHtml(H.proyek)}</div>
+          <div><b>MINGGU KE</b> : ${escapeHtml(H.mingguKe)} &nbsp; <b>TGL</b> : ${escapeHtml(H.tgl || today)}</div>
+        </div>
+      </div>
+
+      <div class="ma-summary-wrap">
+        <div class="ma-summary-title">Tabel A — Jumlah SI</div>
+        <table class="ma-summary">
+          <thead>
+            <tr>
+              <th rowspan="2">Jumlah</th>
+              <th colspan="3">Kode &mdash; 1A</th>
+              <th colspan="3">Kode &mdash; 1B</th>
+              <th colspan="3">Total</th>
+              <th rowspan="2">Kumulatif</th>
+            </tr>
+            <tr>
+              <th>STR</th><th>ARS</th><th>MEP</th>
+              <th>STR</th><th>ARS</th><th>MEP</th>
+              <th>1A</th><th>1B</th><th>VO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label">s/d Minggu Lalu</td>
+              ${disc.map(d => `<td>${blankIfZero(S.kode.kode1A[d].lw)}</td>`).join("")}
+              ${disc.map(d => `<td>${blankIfZero(S.kode.kode1B[d].lw)}</td>`).join("")}
+              <td><b>${blankIfZero(S.total1ALW)}</b></td><td><b>${blankIfZero(S.total1BLW)}</b></td><td><b>${blankIfZero(S.voLW)}</b></td>
+              <td><b>${blankIfZero(S.kumulatifLW)}</b></td>
+            </tr>
+            <tr>
+              <td class="label">Minggu Ini</td>
+              ${disc.map(d => `<td>${blankIfZero(S.kode.kode1A[d].this)}</td>`).join("")}
+              ${disc.map(d => `<td>${blankIfZero(S.kode.kode1B[d].this)}</td>`).join("")}
+              <td><b>${blankIfZero(S.total1AThis)}</b></td><td><b>${blankIfZero(S.total1BThis)}</b></td><td><b>${blankIfZero(S.voThis)}</b></td>
+              <td><b>${blankIfZero(S.kumulatifThis)}</b></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="ma-summary-title">Tabel B — Detail Site Instruction</div>
+      </div>
+
+      <div class="ma-table-scroll">
+        <table class="ma-table">
+          <thead>
+            <tr>
+              <th rowspan="2">No</th>
+              <th rowspan="2">Tgl<br>Terbit</th>
+              <th rowspan="2">No Site<br>Instruksi</th>
+              <th colspan="2">Kode</th>
+              <th rowspan="2">STR</th>
+              <th rowspan="2">ARS</th>
+              <th rowspan="2">MEP</th>
+              <th rowspan="2">Item Pekerjaan</th>
+            </tr>
+            <tr>
+              <th>1.A</th><th>1.B</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length ? rows.map(r => siRowHtml(r, COLS)).join("") : `<tr><td colspan="${COLS}" style="padding:30px;color:#8992a3;">Belum ada data. Klik &ldquo;Tambah Data&rdquo; untuk mengisi baris pertama.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ma-legend stacked">
+        <div><b>Keterangan :</b></div>
+        ${H.keteranganKode.map(s => `<span>&nbsp;&nbsp;<b>${escapeHtml(s.code)}</b>&nbsp;${escapeHtml(s.desc)}</span>`).join("")}
+      </div>
+
+      <div class="ma-notes">
+        <div><b>Note :</b></div>
+        ${H.notes.map(n => `<div>${escapeHtml(n)}</div>`).join("")}
+      </div>
+
+      <div class="rfi-sign">
+        <div class="rfi-sign-block">
+          <div>${escapeHtml(H.preparedBy.label)}</div>
+          <div class="rfi-sign-space"></div>
+          <div class="rfi-sign-role">${escapeHtml(H.preparedBy.role)}</div>
+        </div>
+        <div class="rfi-sign-block">
+          <div>${escapeHtml(H.acknowledgedBy1.label)}</div>
+          <div class="rfi-sign-space"></div>
+          <div class="rfi-sign-role">${escapeHtml(H.acknowledgedBy1.role)}</div>
+        </div>
+        <div class="rfi-sign-block">
+          <div>${escapeHtml(H.acknowledgedBy2.label)}</div>
+          <div class="rfi-sign-space"></div>
+          <div class="rfi-sign-role">${escapeHtml(H.acknowledgedBy2.role)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("addBtn").addEventListener("click", () => openAddModal(menu, SITE_INSTRUCTION_COLUMNS));
+  document.getElementById("siCutoffInput").addEventListener("change", (e) => {
+    siCutoff = e.target.value || siCutoff;
+    renderSiTable(menu, data);
+  });
+}
+
+function siRowHtml(row, colCount){
+  const markIdxs = [3, 4, 5, 6, 7]; // Kode 1.A, Kode 1.B, STR, ARS, MEP
+  const cells = row.map((c, i) => {
+    if (markIdxs.includes(i)){
+      const v = String(c ?? "").trim();
+      return `<td class="${v ? "ma-check" : ""}">${v ? "&#10003;" : ""}</td>`;
+    }
+    const isLeft = i === 2 || i === colCount - 1; // No Site Instruksi, Item Pekerjaan
+    return `<td class="${isLeft ? "left" : ""}">${escapeHtml(c)}</td>`;
+  }).join("");
+  return `<tr>${cells}</tr>`;
+}
+
+/* ============================================================
+   SUMMARY MONITORING ENGINEERING
+   Menggabungkan data dari sheet Shop Drawing, Material Approval,
+   Method of Work dan RFI menjadi satu ringkasan bergaya rekap
+   mingguan (tabel per disiplin/kategori + chart).
+   ============================================================ */
+
+const SMY_STATUS_COLORS = { a: "#3fae6a", b: "#8bc34a", c: "#e2593a", resubmit: "#e2a233" };
+
+function pct(n, total){
+  return total ? Math.round((n / total) * 100) : 0;
+}
+
+/* Hitung breakdown per "kategori" (mis. disiplin MECHANICAL, ELECTRICAL, dst)
+   untuk sheet yang menandai kategori lewat baris judul (group row), seperti
+   Shop Drawing dan Material Approval. */
+function computeGroupedBreakdown(rows, opts){
+  const { isGroupRow, groupName, submittedTest, statusCol } = opts;
+  const categories = [];
+  const data = {};
+  let current = null;
+  rows.forEach(row => {
+    if (isGroupRow(row)){
+      current = groupName(row) || "Lainnya";
+      if (!data[current]){ data[current] = { planned: 0, submitted: 0, a: 0, b: 0, c: 0, resubmit: 0 }; categories.push(current); }
+      return;
+    }
+    if (!current || !data[current]) return;
+    const d = data[current];
+    d.planned++;
+    if (submittedTest(row)) d.submitted++;
+    const status = String(row[statusCol] ?? "").trim().toUpperCase();
+    if (status === "A") d.a++;
+    else if (status === "B") d.b++;
+    else if (status === "C") d.c++;
+    else d.resubmit++;
+  });
+  categories.forEach(c => { data[c].notSubmitted = data[c].planned - data[c].submitted; });
+  return { categories, data };
+}
+
+/* Method of Work tidak punya baris judul kategori — disiplinnya ada di
+   kolom STR/ARS/MEP per baris, dengan status A/B/C/D sebagai flag kolom
+   terpisah (idx 24-27), sama seperti computeMowSummary. */
+function computeMowBreakdown(rows){
+  const categories = ["STR", "ARS", "MEP"];
+  const idx = { STR: 2, ARS: 3, MEP: 4 };
+  const data = {};
+  categories.forEach(c => { data[c] = { planned: 0, submitted: 0, a: 0, b: 0, c: 0, resubmit: 0 }; });
+  rows.forEach(row => {
+    if (isMowHighlightRow(row)) return;
+    categories.forEach(cat => {
+      if (!String(row[idx[cat]] ?? "").trim()) return;
+      const d = data[cat];
+      d.planned++; d.submitted++;
+      if (String(row[24] ?? "").trim()) d.a++;
+      else if (String(row[25] ?? "").trim()) d.b++;
+      else if (String(row[26] ?? "").trim()) d.c++;
+      else d.resubmit++;
+    });
+  });
+  categories.forEach(c => { data[c].notSubmitted = data[c].planned - data[c].submitted; });
+  return { categories, data };
+}
+
+function totalsOfBreakdown(categories, data){
+  const t = { planned: 0, submitted: 0, a: 0, b: 0, c: 0, resubmit: 0 };
+  categories.forEach(cat => { const d = data[cat]; Object.keys(t).forEach(k => { t[k] += d[k]; }); });
+  t.notSubmitted = t.planned - t.submitted;
+  return t;
+}
+
+function categoryTableHtml(categories, data, totals, rowsCfg){
+  if (!categories.length){
+    return `<div style="padding:20px;color:#8992a3;font-size:12.5px;">Belum ada data.</div>`;
+  }
+  const catHead = categories.map(c => `<th colspan="2">${escapeHtml(c)}</th>`).join("") + `<th colspan="2">TOTAL</th>`;
+  const subHead = categories.map(() => `<th>Qty</th><th>%</th>`).join("") + `<th>Qty</th><th>%</th>`;
+  const body = rowsCfg.map(r => {
+    const cells = categories.map(c => {
+      const d = data[c];
+      const val = d[r.key];
+      const showPct = r.pct && val;
+      return `<td>${val || ""}</td><td class="pct-cell">${showPct ? pct(val, d.planned) + "%" : ""}</td>`;
+    }).join("");
+    const totVal = totals[r.key];
+    const totShowPct = r.pct && totVal;
+    return `<tr class="${r.cls || ""}"><td class="label">${escapeHtml(r.label)}</td>${cells}<td><b>${totVal || ""}</b></td><td class="pct-cell"><b>${totShowPct ? pct(totVal, totals.planned) + "%" : ""}</b></td></tr>`;
+  }).join("");
+  return `
+    <table class="smy-table">
+      <thead>
+        <tr><th rowspan="2">Status</th>${catHead}</tr>
+        <tr>${subHead}</tr>
+      </thead>
+      <tbody>${body}</tbody>
+    </table>`;
+}
+
+const SMY_DRAWING_ROWS = [
+  { label: "PLANNED TOTAL", key: "planned", pct: false },
+  { label: "Submission Up To This Week", key: "submitted", pct: true },
+  { label: "Not Yet Submitted", key: "notSubmitted", pct: true },
+  { label: "A : APPROVED", key: "a", pct: true, cls: "smy-row-a" },
+  { label: "B : APPROVED AS NOTE", key: "b", pct: true, cls: "smy-row-b" },
+  { label: "C : REJECT", key: "c", pct: true, cls: "smy-row-c" },
+  { label: "RESUBMIT - ON REVIEW", key: "resubmit", pct: true, cls: "smy-row-resubmit" },
+];
+const SMY_MOW_ROWS = [
+  { label: "MOW - PLANNED", key: "planned", pct: false },
+  { label: "Submission Up To This Week", key: "submitted", pct: true },
+  { label: "Not Yet Submitted", key: "notSubmitted", pct: true },
+  { label: "A : APPROVED", key: "a", pct: true, cls: "smy-row-a" },
+  { label: "B : APPROVED AS NOTE", key: "b", pct: true, cls: "smy-row-b" },
+  { label: "C : REJECT", key: "c", pct: true, cls: "smy-row-c" },
+  { label: "WAITING OWNER APPROVAL", key: "resubmit", pct: true, cls: "smy-row-resubmit" },
+];
+
+/* --- Chart helpers (SVG murni, tanpa library eksternal) --- */
+function svgBarChart(categories, values, opts){
+  opts = opts || {};
+  const w = 380, barH = 20, gap = 12, leftPad = 108, rightPad = 42, topPad = 8;
+  const plotW = w - leftPad - rightPad;
+  const h = topPad * 2 + categories.length * (barH + gap) - gap;
+  const color = opts.color || "#1e2f4f";
+  const bars = categories.map((c, i) => {
+    const y = topPad + i * (barH + gap);
+    const val = Math.max(0, Math.min(100, values[i] || 0));
+    const bw = plotW * (val / 100);
+    return `
+      <text x="${leftPad - 8}" y="${y + barH / 2 + 4}" text-anchor="end" font-size="10.5" fill="#2a3040" font-family="Inter,sans-serif">${escapeHtml(c)}</text>
+      <rect x="${leftPad}" y="${y}" width="${plotW}" height="${barH}" rx="4" fill="#eef0f4"/>
+      <rect x="${leftPad}" y="${y}" width="${bw}" height="${barH}" rx="4" fill="${color}"/>
+      <text x="${leftPad + plotW + 6}" y="${y + barH / 2 + 4}" font-size="10.5" font-weight="700" fill="#101a2e" font-family="Inter,sans-serif">${val}%</text>
+    `;
+  }).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:${w}px;display:block;">${bars}</svg>`;
+}
+
+function svgDonut(segments, opts){
+  opts = opts || {};
+  const size = opts.size || 148, stroke = 20;
+  const r = size / 2 - stroke / 2 - 2, cx = size / 2, cy = size / 2;
+  const circumference = 2 * Math.PI * r;
+  const total = segments.reduce((s, x) => s + x.value, 0);
+  let offset = 0;
+  const arcs = total === 0
+    ? `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#eef0f4" stroke-width="${stroke}"/>`
+    : segments.filter(s => s.value > 0).map(seg => {
+        const frac = seg.value / total;
+        const dash = frac * circumference;
+        const circle = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${seg.color}" stroke-width="${stroke}" stroke-dasharray="${dash} ${circumference - dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+        offset += dash;
+        return circle;
+      }).join("");
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">
+    ${arcs}
+    <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="20" font-weight="800" fill="#101a2e" font-family="Inter,sans-serif">${total}</text>
+    <text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="9.5" fill="#8992a3" font-family="'IBM Plex Mono',monospace">ITEM</text>
+  </svg>`;
+}
+
+function chartLegendHtml(segments){
+  return `<div class="chart-legend">${segments.map(s => `<span><i style="background:${s.color}"></i>${escapeHtml(s.label)} (${s.value})</span>`).join("")}</div>`;
+}
+
+function smySectionHtml(no, title, categories, data, totals, rowsCfg){
+  const statusSegments = [
+    { label: "Approved", value: totals.a, color: SMY_STATUS_COLORS.a },
+    { label: "Approved as Note", value: totals.b, color: SMY_STATUS_COLORS.b },
+    { label: "Reject", value: totals.c, color: SMY_STATUS_COLORS.c },
+    { label: "On Review", value: totals.resubmit, color: SMY_STATUS_COLORS.resubmit },
+  ];
+  const barValues = categories.map(c => pct(data[c].submitted, data[c].planned));
+  return `
+    <div class="smy-section">
+      <div class="smy-section-title">${no}. ${escapeHtml(title)}</div>
+      <div class="smy-table-scroll">${categoryTableHtml(categories, data, totals, rowsCfg)}</div>
+      <div class="summary-charts-grid">
+        <div class="chart-card">
+          <div class="chart-card-title">Submission % per Kategori</div>
+          ${categories.length ? svgBarChart(categories, barValues) : `<div style="color:#8992a3;font-size:12px;">Belum ada data.</div>`}
+        </div>
+        <div class="chart-card" style="display:flex;flex-direction:column;align-items:center;">
+          <div class="chart-card-title" style="align-self:flex-start;">Distribusi Status</div>
+          ${svgDonut(statusSegments)}
+          ${chartLegendHtml(statusSegments)}
+        </div>
+      </div>
+    </div>`;
+}
+
+async function renderSummary(){
+  contentEl.innerHTML = `<div class="state-box"><div class="spinner"></div>Memuat ringkasan…</div>`;
+  const need = ["shop-drawing", "material-approval", "method-of-work", "rfi"];
+  const results = await Promise.allSettled(need.map(m => (cache[m] ? Promise.resolve(cache[m]) : fetchMenu(m).then(d => { cache[m] = d; return d; }))));
+  const [sdRes, maRes, mowRes, rfiRes] = results;
+  const rowsOf = r => (r.status === "fulfilled" ? (r.value.rows || []) : []);
+
+  const sdB = computeGroupedBreakdown(rowsOf(sdRes), {
+    isGroupRow: isDocGroupRow, groupName: r => String(r[1] ?? "").trim(),
+    submittedTest: r => !!String(r[9] ?? "").trim(), statusCol: 19,
+  });
+  const maB = computeGroupedBreakdown(rowsOf(maRes), {
+    isGroupRow: isMaterialGroupRow, groupName: r => String(r[2] ?? "").trim(),
+    submittedTest: r => !!String(r[7] ?? "").trim(), statusCol: 17,
+  });
+  const mowB = computeMowBreakdown(rowsOf(mowRes));
+  const rfiSummary = computeRfiSummary(rowsOf(rfiRes), null);
+  const rfiSubmit = ["STR", "ARS", "MEP"].reduce((s, d) => s + rfiSummary[d].submitTot, 0);
+  const rfiReplied = ["STR", "ARS", "MEP"].reduce((s, d) => s + rfiSummary[d].repliedTot, 0);
+  const rfiNotReplied = rfiSubmit - rfiReplied;
+
+  const sdTotals = totalsOfBreakdown(sdB.categories, sdB.data);
+  const maTotals = totalsOfBreakdown(maB.categories, maB.data);
+  const mowTotals = totalsOfBreakdown(mowB.categories, mowB.data);
+
+  const now = new Date();
+  const updatedStr = now.toLocaleDateString('id-ID') + " " + now.toLocaleTimeString('id-ID');
+
+  contentEl.innerHTML = `
+    <div class="smy-page-head">
+      <div class="smy-page-title">SUMMARY MONITORING ENGINEERING</div>
+      <div class="smy-page-updated">UPDATED: ${escapeHtml(updatedStr)}</div>
+    </div>
+
+    ${smySectionHtml(1, "SHOP DWG SUBMISSION & APPROVAL MONITORING", sdB.categories, sdB.data, sdTotals, SMY_DRAWING_ROWS)}
+    ${smySectionHtml(2, "MATERIAL APPROVAL", maB.categories, maB.data, maTotals, SMY_DRAWING_ROWS)}
+    ${smySectionHtml(3, "METHOD OF WORK", mowB.categories, mowB.data, mowTotals, SMY_MOW_ROWS)}
+
+    <div class="smy-section">
+      <div class="smy-section-title">4. RFI</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;padding:16px 18px;align-items:center;">
+        <table class="smy-mini-table">
+          <tbody>
+            <tr class="mini-submit"><td class="label">Submit</td><td>${rfiSubmit}</td></tr>
+            <tr class="mini-replied"><td class="label">Replied</td><td>${rfiReplied}</td><td class="pct-cell">${pct(rfiReplied, rfiSubmit)}%</td></tr>
+            <tr class="mini-notreplied"><td class="label">Not Yet Replied</td><td>${rfiNotReplied}</td><td class="pct-cell">${pct(rfiNotReplied, rfiSubmit)}%</td></tr>
+          </tbody>
+        </table>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          ${svgDonut([
+            { label: "Replied", value: rfiReplied, color: "#3fae6a" },
+            { label: "Not Yet Replied", value: rfiNotReplied, color: "#e2a233" },
+          ])}
+          ${chartLegendHtml([
+            { label: "Replied", value: rfiReplied, color: "#3fae6a" },
+            { label: "Not Yet Replied", value: rfiNotReplied, color: "#e2a233" },
+          ])}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(v){
+  return String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function offlineBannerHtml(){
+  return `<div class="offline-banner">
+    <span>⚠</span>
+    <span>Belum tersambung ke spreadsheet — struktur tabel ditampilkan dulu. Kamu tetap bisa menambah data lewat tombol di atas; data akan tersimpan begitu SPREADSHEET_ID di backend sudah diisi.</span>
+  </div>`;
+}
+
+const modalRoot = document.getElementById("modalRoot");
+
+function openAddModal(menu, header){
+  modalRoot.innerHTML = `
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-box">
+        <div class="modal-head">
+          <div class="modal-title">Tambah Data — ${escapeHtml(MENUS[menu].title)}</div>
+          <button class="modal-close" id="modalCloseBtn">✕</button>
+        </div>
+        <div class="modal-body" id="modalFields">
+          ${header.map((h, i) => `
+            <div class="field">
+              <label for="f${i}">${escapeHtml(h)}</label>
+              <input type="text" id="f${i}" data-idx="${i}">
+            </div>
+          `).join("")}
+        </div>
+        <div class="modal-error" id="modalError" style="display:none;"></div>
+        <div class="modal-foot">
+          <button class="btn-secondary" id="modalCancelBtn">Batal</button>
+          <button class="btn-primary" id="modalSaveBtn">Simpan Data</button>
+        </div>
+      </div>
+    </div>
+  `;
+  const overlay = document.getElementById("modalOverlay");
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+  document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
+  document.getElementById("modalCancelBtn").addEventListener("click", closeModal);
+  document.getElementById("modalSaveBtn").addEventListener("click", () => submitAddModal(menu, header));
+}
+
+function closeModal(){
+  modalRoot.innerHTML = "";
+}
+
+async function submitAddModal(menu, header){
+  const values = header.map((_, i) => document.getElementById(`f${i}`).value);
+  const saveBtn = document.getElementById("modalSaveBtn");
+  const errEl = document.getElementById("modalError");
+  errEl.style.display = "none";
+  saveBtn.disabled = true;
+  saveBtn.textContent = "Menyimpan…";
+  try{
+    const res = await fetch("/api/sheet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gid: MENUS[menu].gid, sheetName: MENUS[menu].sheetName, values }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data || data.error){
+      throw new Error((data && data.error) || `HTTP ${res.status}`);
+    }
+    closeModal();
+    await loadMenu(menu, true); // muat ulang dari spreadsheet supaya konsisten
+  }catch(err){
+    errEl.textContent = "Gagal menyimpan: " + err.message + ". Data belum tersimpan ke spreadsheet — cek konfigurasi backend.";
+    errEl.style.display = "block";
+    saveBtn.disabled = false;
+    saveBtn.textContent = "Simpan Data";
+  }
+}
+
+// init
+setActive("summary");
+</script>
+</body>
+</html>
